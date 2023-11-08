@@ -1,25 +1,19 @@
-import { workspace } from "vscode"
+import { Uri, workspace } from "vscode"
 
-interface FocusWorkspaceVSCodeConfig {
-	enableLogs: boolean
-	rootPackageJsonRelativePath: string | null
-}
-
-export function getConfig(): FocusWorkspaceVSCodeConfig {
-	const config = workspace.getConfiguration(
-		"focusWorkspace",
-	) as unknown as FocusWorkspaceVSCodeConfig
-
-	// Some settings are disabled for untrusted workspaces
-	// because they can be used for bad things.
-	if (!workspace.isTrusted) {
-		const newConfig = {
-			...config,
-			prettierPath: false,
-			rootPackageJsonRelativePath: null,
-		}
-		return newConfig
+export const doesUriExists = async (uri: Uri): Promise<boolean> => {
+	try {
+		await workspace.fs.stat(uri)
+		return true
+	} catch {
+		return false
 	}
-
-	return config
 }
+
+export const readJson = async <T>(fileUri: Uri): Promise<T> => {
+	const readData = await workspace.fs.readFile(fileUri)
+	const readStr = Buffer.from(readData).toString("utf8")
+	return JSON.parse(readStr)
+}
+
+export const isNotNil = <T>(value: T | null | undefined): value is T =>
+	value !== null && value !== undefined

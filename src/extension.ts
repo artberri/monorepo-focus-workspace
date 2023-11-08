@@ -1,8 +1,7 @@
-import { posix } from "path"
 import { ExtensionContext, commands, window, workspace } from "vscode"
+import { getConfig } from "./getConfig"
 import { Logger } from "./logger"
-import { getConfig } from "./utils"
-import { Workspaces } from "./workspaces"
+import { getMonorepos } from "./monorepoRepository"
 
 export function activate(context: ExtensionContext) {
 	const logger = Logger.instance()
@@ -12,36 +11,30 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((event) => {
 			if (event.affectsConfiguration("focusWorkspace.enableLogs")) {
-				const { enableLogs } = getConfig()
-				logger.setEnabled(enableLogs)
+				window.showWarningMessage(
+					`Reload required to apply changes to "focusWorkspace.enableLogs".`,
+				)
 			}
 		}),
 	)
 
 	logger.logInfo(`Extension Version: ${context.extension.packageJSON.version}.`)
 
-	const disposable = commands.registerCommand("focus-workspace.focus", () => {
-		const { rootPackageJsonRelativePath } = getConfig()
-		workspace.workspaceFolders?.forEach(async (folder) => {
-			const packageJSONPath = rootPackageJsonRelativePath
-				? posix.join(
-						folder.uri.path,
-						rootPackageJsonRelativePath,
-						"package.json",
-				  )
-				: posix.join(folder.uri.path, "package.json")
+	const disposable = commands.registerCommand(
+		"focus-workspace.focus",
+		async () => {
+			logger.logInfo("Command focus-workspace.focus called")
 
-			const workspaces = await Workspaces.fromUri(
-				folder.uri.with({ path: packageJSONPath }),
-			)
+			const monorepos = await getMonorepos()
 
-			if (workspaces) {
-				window.showInformationMessage(
-					`Monorepo found with the following workspaces: ${workspaces.workspaces.join()}`,
+			if (!monorepos.length) {
+				logger.logError(`Monorepos not found`)
+				window.showWarningMessage(
+					"Monorepo not found. Check that a `package.json` file exists in the root of your workspace folder and that includes a `workspaces` property. If you are using a custom path for your `package.json` file, check that the `focusWorkspace.rootPackageJsonRelativePath` setting is correct.",
 				)
 			}
-		})
-	})
+		},
+	)
 
 	context.subscriptions.push(disposable)
 }

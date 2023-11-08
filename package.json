@@ -43,11 +43,8 @@
             "scope": "window"
           },
           "focusWorkspace.rootPackageJsonRelativePath": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "default": null,
+            "type": "string",
+            "default": "",
             "markdownDescription": "Specifies the relative path to the `package.json` file of the root of the workspaces. If not specified, the extension will try to find it in the workspace folder root.",
             "scope": "window"
           }
