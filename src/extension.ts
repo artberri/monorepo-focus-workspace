@@ -27,12 +27,62 @@ export function activate(context: ExtensionContext) {
 
 			const monorepos = await getMonorepos()
 
-			if (!monorepos.length) {
+			if (!monorepos[0]) {
 				logger.logError(`Monorepos not found`)
 				window.showWarningMessage(
 					"Monorepo not found. Check that a `package.json` file exists in the root of your workspace folder and that includes a `workspaces` property. If you are using a custom path for your `package.json` file, check that the `focusWorkspace.rootPackageJsonRelativePath` setting is correct.",
 				)
+				return
 			}
+
+			let selectedMonorepo = monorepos[0]
+			if (monorepos.length > 1) {
+				const items = monorepos.map((monorepo) => ({
+					monorepo,
+					label: hasMultipleMonorepos
+						? `${monorepo.name} - ${workspace.name}`
+						: ` ${workspace.name}`,
+					description: `at ${workspace}`,
+				}))
+				const pickedMonorepo = await window.showQuickPick(items, {
+					matchOnDescription: true,
+					title: "Pick a monorepo to focus",
+				})
+
+				if (pickedMonorepo) {
+					selectedMonorepo = pickedMonorepo.monorepo
+				} else {
+					logger.logInfo(`Monorepo not selected`)
+					return
+				}
+			}
+
+			const hasMultipleMonorepos = monorepos.length > 1
+			const items = selectedMonorepo.workspaces.map((workspace) => {
+				return {
+					workspace,
+					label: `📦 ${workspace.name}`,
+					description: `at ${workspace.packageJsonUri.fsPath}`,
+				}
+			})
+
+			const picked = await window.showQuickPick(items, {
+				matchOnDescription: true,
+				title: "Pick a workspace to focus",
+			})
+
+			if (!picked) {
+				logger.logInfo(`Workspace not selected`)
+				return
+			}
+
+			logger.logInfo(
+				`Picked ${selectedMonorepo.name}/${picked.workspace.name} workspace`,
+				{
+					selectedMonorepo,
+					selectedWorkspace: picked.workspace,
+				},
+			)
 		},
 	)
 

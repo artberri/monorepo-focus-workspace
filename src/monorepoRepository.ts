@@ -91,6 +91,7 @@ export const getMonorepo = async (
 		name: rootPackageJsonData.name,
 		workspaceFolder: folder,
 		workspaces,
+		packageJsonUri: rootPackageJson,
 	}
 }
 
