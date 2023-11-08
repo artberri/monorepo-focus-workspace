@@ -1,0 +1,85 @@
+{
+  "name": "focus-workspace",
+  "displayName": "Focus Workspace",
+  "description": "Create a partial tree view for a target workspace. Focus on your current task.",
+  "version": "0.0.2",
+  "license": "MIT",
+  "author": {
+    "name": "Alberto Varela",
+    "email": "hello@albertovarela.net",
+    "url": "https://www.albertovarela.net"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/artberri/vscode-focus-workspace"
+  },
+  "homepage": "https://github.com/artberri/vscode-focus-workspace#readme",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/package.json"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "focus-workspace.focus",
+        "title": "Focus On...",
+        "category": "Focus Workspace"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Focus Workspace",
+        "properties": {
+          "focusWorkspace.enableLogs": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Enable output logs for debugging purposes.",
+            "scope": "window"
+          },
+          "focusWorkspace.rootPackageJsonRelativePath": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null,
+            "markdownDescription": "Specifies the relative path to the `package.json` file of the root of the workspaces. If not specified, the extension will try to find it in the workspace folder root.",
+            "scope": "window"
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "build:base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "build": "pnpm run build:base --sourcemap",
+    "build:watch": "pnpm run build:base --sourcemap --watch",
+    "compile": "pnpm run build:base --minify",
+    "lint": "eslint src --ext ts",
+    "watch": "concurrently -n build,types -c blue,green \"pnpm run build:watch\" \"pnpm run qa:types:watch\"",
+    "qa": "concurrently -n types,lint -c blue,green \"pnpm run qa:types\" \"pnpm run qa:lint\"",
+    "qa:types": "tsc --noEmit",
+    "qa:types:watch": "tsc -watch --noEmit",
+    "qa:lint": "pnpm run lint"
+  },
+  "devDependencies": {
+    "@types/node": "18.x",
+    "@types/vscode": "1.80.x",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vscode/test-electron": "^2.3.6",
+    "concurrently": "^8.2.2",
+    "esbuild": "^0.19.5",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "glob": "^10.3.10",
+    "prettier": "3.0.3",
+    "typescript": "^5.2.2"
+  }
+}

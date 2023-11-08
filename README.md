@@ -1,1 +1,1 @@
-# vscode-workspaces-focus
+# workspace-focus README
