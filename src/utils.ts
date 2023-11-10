@@ -1,3 +1,4 @@
+import { posix } from "path"
 import { Uri, workspace } from "vscode"
 
 export const doesUriExists = async (uri: Uri): Promise<boolean> => {
@@ -17,3 +18,9 @@ export const readJson = async <T>(fileUri: Uri): Promise<T> => {
 
 export const isNotNil = <T>(value: T | null | undefined): value is T =>
 	value !== null && value !== undefined
+
+export const getRelativePath = (base: Uri, file: Uri): string => {
+	const baseDir = posix.dirname(base.path)
+	const fileDir = posix.dirname(file.path)
+	return posix.relative(baseDir, fileDir)
+}

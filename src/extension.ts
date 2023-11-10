@@ -39,10 +39,8 @@ export function activate(context: ExtensionContext) {
 			if (monorepos.length > 1) {
 				const items = monorepos.map((monorepo) => ({
 					monorepo,
-					label: hasMultipleMonorepos
-						? `${monorepo.name} - ${workspace.name}`
-						: ` ${workspace.name}`,
-					description: `at ${workspace}`,
+					label: monorepo.name,
+					description: `at ${monorepo.path}`,
 				}))
 				const pickedMonorepo = await window.showQuickPick(items, {
 					matchOnDescription: true,
@@ -57,12 +55,11 @@ export function activate(context: ExtensionContext) {
 				}
 			}
 
-			const hasMultipleMonorepos = monorepos.length > 1
 			const items = selectedMonorepo.workspaces.map((workspace) => {
 				return {
 					workspace,
-					label: `📦 ${workspace.name}`,
-					description: `at ${workspace.packageJsonUri.fsPath}`,
+					label: `${workspace.emoji} ${workspace.name}`,
+					description: `at ${workspace.path}`,
 				}
 			})
 
@@ -78,11 +75,15 @@ export function activate(context: ExtensionContext) {
 
 			logger.logInfo(
 				`Picked ${selectedMonorepo.name}/${picked.workspace.name} workspace`,
-				{
-					selectedMonorepo,
-					selectedWorkspace: picked.workspace,
-				},
 			)
+
+			selectedMonorepo
+				.findWorkspaceDependencies(picked.workspace)
+				.forEach((w) => {
+					logger.logInfo(
+						`Workspace ${w.name} is a dependency of ${picked.workspace.name}`,
+					)
+				})
 		},
 	)
 

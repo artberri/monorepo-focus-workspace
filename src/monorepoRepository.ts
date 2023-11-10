@@ -65,34 +65,22 @@ export const getMonorepo = async (
 		)
 	).flat()
 
-	const rawWorkspaces = (
+	const workspaces = (
 		await Promise.all(workspacePackageJsons.map(getRawWorkspace))
 	).filter(isNotNil)
 
-	const workspaceNames = rawWorkspaces.map((workspace) => workspace.name)
-	const workspaces = rawWorkspaces.map((workspace) => ({
-		name: workspace.name,
-		dependencies: workspace.dependencies.filter((dependency) =>
-			workspaceNames.includes(dependency),
-		),
-		devDependencies: workspace.devDependencies.filter((dependency) =>
-			workspaceNames.includes(dependency),
-		),
-		packageJsonUri: workspace.packageJsonUri,
-	}))
-
-	workspaceNames.forEach((workspaceName) => {
+	workspaces.forEach((workspace) => {
 		logger.logInfo(
-			`Found workspace ${workspaceName} in the ${rootPackageJsonData.name} monorepo`,
+			`Found workspace ${workspace.name} in the ${rootPackageJsonData.name} monorepo`,
 		)
 	})
 
-	return {
+	return Monorepo.create({
 		name: rootPackageJsonData.name,
 		workspaceFolder: folder,
 		workspaces,
 		packageJsonUri: rootPackageJson,
-	}
+	})
 }
 
 const getWorkspacePackageJsons =
