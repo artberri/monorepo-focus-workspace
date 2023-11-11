@@ -6,5 +6,6 @@
     "out": true
   },
   "typescript.tsc.autoDetect": "off",
-  "focusWorkspace.enableLogs": true
+  "focusWorkspace.enableLogs": true,
+  "focusWorkspace.rootPackageJsonRelativePath": "example/package.json"
 }

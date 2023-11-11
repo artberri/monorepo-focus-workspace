@@ -55,6 +55,14 @@ export function activate(context: ExtensionContext) {
 				}
 			}
 
+			if (selectedMonorepo.workspaces.length === 0) {
+				logger.logError(`Workspaces not found on Monorepo`)
+				window.showWarningMessage(
+					"Workspaces not found on Monorepo. Check that the `workspaces` property of your `package.json` file is not empty.",
+				)
+				return
+			}
+
 			const items = selectedMonorepo.workspaces.map((workspace) => {
 				return {
 					workspace,
@@ -74,7 +82,7 @@ export function activate(context: ExtensionContext) {
 			}
 
 			logger.logInfo(
-				`Picked ${selectedMonorepo.name}/${picked.workspace.name} workspace`,
+				`Picked this ${selectedMonorepo.name}/${picked.workspace.name} workspace`,
 			)
 
 			selectedMonorepo
@@ -84,6 +92,20 @@ export function activate(context: ExtensionContext) {
 						`Workspace ${w.name} is a dependency of ${picked.workspace.name}`,
 					)
 				})
+
+			// workspace
+			// 	.getConfiguration("files", selectedMonorepo.workspaceFolder)
+			// 	.update(
+			// 		"exclude",
+			// 		{
+			// 			...workspace
+			// 				.getConfiguration("files", selectedMonorepo.workspaceFolder)
+			// 				.get("exclude"),
+			// 			"**": true,
+			// 			...picked.workspace.exclude,
+			// 		},
+			// 		true,
+			// 	)
 		},
 	)
 

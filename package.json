@@ -2,7 +2,7 @@
   "name": "focus-workspace",
   "displayName": "Focus Workspace",
   "description": "Create a partial tree view for a target workspace. Focus on your current task.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "author": {
     "name": "Alberto Varela",
@@ -44,7 +44,7 @@
           },
           "focusWorkspace.rootPackageJsonRelativePath": {
             "type": "string",
-            "default": "",
+            "default": "package.json",
             "markdownDescription": "Specifies the relative path to the `package.json` file of the root of the workspaces. If not specified, the extension will try to find it in the workspace folder root.",
             "scope": "window"
           }
@@ -53,17 +53,17 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run compile",
+    "vscode:prepublish": "npm run compile",
     "build:base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
-    "build": "pnpm run build:base --sourcemap",
-    "build:watch": "pnpm run build:base --sourcemap --watch",
-    "compile": "pnpm run build:base --minify",
+    "build": "npm run build:base --sourcemap",
+    "build:watch": "npm run build:base --sourcemap --watch",
+    "compile": "npm run build:base --minify",
     "lint": "eslint src --ext ts",
-    "watch": "concurrently -n build,types -c blue,green \"pnpm run build:watch\" \"pnpm run qa:types:watch\"",
-    "qa": "concurrently -n types,lint -c blue,green \"pnpm run qa:types\" \"pnpm run qa:lint\"",
+    "watch": "concurrently -n build,types -c blue,green \"npm run build:watch\" \"npm run qa:types:watch\"",
+    "qa": "concurrently -n types,lint -c blue,green \"npm run qa:types\" \"npm run qa:lint\"",
     "qa:types": "tsc --noEmit",
     "qa:types:watch": "tsc -watch --noEmit",
-    "qa:lint": "pnpm run lint"
+    "qa:lint": "npm run lint"
   },
   "devDependencies": {
     "@types/node": "18.x",

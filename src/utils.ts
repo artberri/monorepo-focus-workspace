@@ -24,3 +24,21 @@ export const getRelativePath = (base: Uri, file: Uri): string => {
 	const fileDir = posix.dirname(file.path)
 	return posix.relative(baseDir, fileDir)
 }
+
+export const getDirname = (file: string): string => {
+	return posix.dirname(file)
+}
+
+export const joinPaths = (...paths: string[]): string => {
+	return posix.join(...paths)
+}
+
+export const toGlobPattern = (path: string): string => {
+	const globPath = path.replaceAll(posix.sep, "/")
+
+	if (globPath.startsWith("./")) {
+		return globPath.slice(2)
+	}
+
+	return globPath
+}

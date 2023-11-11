@@ -1,9 +1,15 @@
-import { posix } from "path"
 import { RelativePattern, Uri, WorkspaceFolder, workspace } from "vscode"
 import { getConfig } from "./getConfig"
 import { Logger } from "./logger"
 import { Monorepo } from "./monorepo"
-import { doesUriExists, isNotNil, readJson } from "./utils"
+import {
+	doesUriExists,
+	getDirname,
+	isNotNil,
+	joinPaths,
+	readJson,
+	toGlobPattern,
+} from "./utils"
 import { Workspace } from "./workspace"
 
 interface PackageJson {
@@ -24,10 +30,9 @@ export const getMonorepo = async (
 ): Promise<Monorepo | undefined> => {
 	const logger = Logger.instance()
 	const { rootPackageJsonRelativePath } = getConfig()
-	const packageJSONPath = posix.join(
+	const packageJSONPath = joinPaths(
 		folder.uri.path,
 		rootPackageJsonRelativePath,
-		"package.json",
 	)
 	const rootPackageJson = folder.uri.with({ path: packageJSONPath })
 	logger.logInfo(`Parsing ${rootPackageJson.fsPath} file`)
@@ -93,12 +98,13 @@ const getWorkspacePackageJsons =
 	}) =>
 	async (workspacePattern: string): Promise<Uri[]> => {
 		const logger = Logger.instance()
-		const fullPattern = rootPackageJsonRelativePath
-			? `${rootPackageJsonRelativePath}/${workspacePattern}`
-			: workspacePattern
+		const fullPattern = `${getDirname(
+			rootPackageJsonRelativePath,
+		)}/${workspacePattern}`
+		logger.logInfo(`Searching files using full pattern ${fullPattern}...`)
 		const searchPattern = new RelativePattern(
 			folder,
-			`${fullPattern}/package.json`,
+			toGlobPattern(`${fullPattern}/package.json`),
 		)
 		logger.logInfo(`Searching files using pattern ${searchPattern.pattern}...`)
 

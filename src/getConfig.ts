@@ -16,7 +16,7 @@ export function getConfig(): FocusWorkspaceVSCodeConfig {
 		const newConfig = {
 			...config,
 			prettierPath: false,
-			rootPackageJsonRelativePath: "",
+			rootPackageJsonRelativePath: "package.json",
 		}
 		return newConfig
 	}
