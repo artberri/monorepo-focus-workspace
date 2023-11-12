@@ -1,7 +1,7 @@
-import { RelativePattern, Uri, WorkspaceFolder, workspace } from "vscode"
-import { getConfig } from "./getConfig"
-import { Logger } from "./logger"
-import { Monorepo } from "./monorepo"
+import type { Uri, WorkspaceFolder } from "vscode"
+import { RelativePattern, workspace } from "vscode"
+import { Config } from "../crosscutting/config"
+import { Logger } from "../crosscutting/logger"
 import {
 	doesUriExists,
 	getDirname,
@@ -9,8 +9,9 @@ import {
 	joinPaths,
 	readJson,
 	toGlobPattern,
-} from "./utils"
-import { Workspace } from "./workspace"
+} from "../crosscutting/utils"
+import { Monorepo } from "./monorepo"
+import type { Workspace } from "./workspace"
 
 interface PackageJson {
 	name: string
@@ -29,7 +30,7 @@ export const getMonorepo = async (
 	folder: WorkspaceFolder,
 ): Promise<Monorepo | undefined> => {
 	const logger = Logger.instance()
-	const { rootPackageJsonRelativePath } = getConfig()
+	const { rootPackageJsonRelativePath } = Config.instance().getConfig()
 	const packageJSONPath = joinPaths(
 		folder.uri.path,
 		rootPackageJsonRelativePath,
@@ -108,7 +109,7 @@ const getWorkspacePackageJsons =
 		)
 		logger.logInfo(`Searching files using pattern ${searchPattern.pattern}...`)
 
-		return workspace.findFiles(searchPattern)
+		return workspace.findFiles(searchPattern, null)
 	}
 
 const getRawWorkspace = async (

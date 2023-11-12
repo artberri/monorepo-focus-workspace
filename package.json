@@ -1,8 +1,8 @@
 {
-  "name": "focus-workspace",
-  "displayName": "Focus Workspace",
-  "description": "Create a partial tree view for a target workspace. Focus on your current task.",
-  "version": "0.0.3",
+  "name": "monorepo-focus-workspace",
+  "displayName": "Monorepo Focus Workspace",
+  "description": "Create a partial tree view to focus on a workspace in a monorepo. Supports NPM, Yarn, Pnpm and Lerna.",
+  "version": "0.0.4",
   "license": "MIT",
   "author": {
     "name": "Alberto Varela",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/artberri/vscode-focus-workspace"
+    "url": "https://github.com/artberri/vscode-focus-workspace.git"
   },
   "homepage": "https://github.com/artberri/vscode-focus-workspace#readme",
   "engines": {
@@ -27,26 +27,53 @@
   "contributes": {
     "commands": [
       {
-        "command": "focus-workspace.focus",
+        "command": "monorepoFocusWorkspace.focus",
         "title": "Focus On...",
-        "category": "Focus Workspace"
+        "category": "Monorepo Workspace"
+      },
+      {
+        "command": "monorepoFocusWorkspace.reset",
+        "title": "Reset Focus",
+        "category": "Monorepo Workspace"
       }
     ],
     "configuration": [
       {
         "title": "Focus Workspace",
         "properties": {
-          "focusWorkspace.enableLogs": {
+          "monorepoFocusWorkspace.rootPackageJsonRelativePath": {
+            "type": "string",
+            "default": "package.json",
+            "markdownDescription": "Specifies the relative path to the `package.json` file of the root of the workspaces. If not specified, the extension will try to find it in the workspace folder root.",
+            "scope": "window"
+          },
+          "monorepoFocusWorkspace.enableLogs": {
             "type": "boolean",
             "default": false,
             "markdownDescription": "Enable output logs for debugging purposes.",
             "scope": "window"
           },
-          "focusWorkspace.rootPackageJsonRelativePath": {
+          "monorepoFocusWorkspace.configurationTarget": {
             "type": "string",
-            "default": "package.json",
-            "markdownDescription": "Specifies the relative path to the `package.json` file of the root of the workspaces. If not specified, the extension will try to find it in the workspace folder root.",
+            "default": "workspace",
+            "markdownDescription": "This extension needs to modify the `files.ignore` setting to hide folders. This setting specifies the scope of the setting change. If `workspace`, the setting will be modified in the workspace settings. If `workspace-folder`, the setting will be modified in the workspace folder settings. If `global`, the setting will be modified in the user settings",
+            "enum": [
+              "workspace",
+              "workspace-folder",
+              "global"
+            ],
+            "enumDescriptions": [
+              "Changes the value for current workspace, if available",
+              "Changes the value for settings from one of the Workspace Folders under which the requested resource belongs to",
+              "Changes the value for all instances of the editor"
+            ],
             "scope": "window"
+          },
+          "monorepoFocusWorkspace.managedFilesIgnoreEntries": {
+            "type": "object",
+            "default": {},
+            "markdownDescription": "Do not edit this setting. It is managed by the extension.",
+            "scope": "resource"
           }
         }
       }
@@ -75,7 +102,6 @@
     "esbuild": "^0.19.5",
     "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
-    "glob": "^10.3.10",
     "prettier": "3.0.3",
     "typescript": "^5.2.2"
   }

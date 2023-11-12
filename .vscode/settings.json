@@ -1,11 +1,9 @@
 {
-  "files.exclude": {
-    "out": true
-  },
+  "files.exclude": {},
   "search.exclude": {
     "out": true
   },
   "typescript.tsc.autoDetect": "off",
-  "focusWorkspace.enableLogs": true,
-  "focusWorkspace.rootPackageJsonRelativePath": "example/package.json"
+  "monorepoFocusWorkspace.enableLogs": true,
+  "monorepoFocusWorkspace.rootPackageJsonRelativePath": "example/package.json"
 }

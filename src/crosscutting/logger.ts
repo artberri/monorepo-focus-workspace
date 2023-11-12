@@ -1,4 +1,5 @@
 import { window } from "vscode"
+import { Config } from "./config"
 
 export class Logger {
 	private static _instance?: Logger
@@ -11,22 +12,12 @@ export class Logger {
 		return Logger._instance
 	}
 
-	public static dispose(): void {
-		Logger._instance = undefined
-	}
-
 	private constructor() {}
 
 	private outputChannel = window.createOutputChannel("FocusWorkspace")
 
-	private enabled: boolean = false
-
-	public setEnabled(enabled: boolean) {
-		this.enabled = enabled
-	}
-
 	public logInfo(message: string, data?: unknown): void {
-		if (!this.enabled) {
+		if (!Config.instance().enableLogs) {
 			return
 		}
 
@@ -37,7 +28,7 @@ export class Logger {
 	}
 
 	public logError(message: string, error?: unknown) {
-		if (!this.enabled) {
+		if (!Config.instance().enableLogs) {
 			return
 		}
 
@@ -56,6 +47,10 @@ export class Logger {
 		} else if (error) {
 			this.logObject(error)
 		}
+	}
+
+	public dispose(): void {
+		Logger._instance = undefined
 	}
 
 	private logObject(data: unknown): void {

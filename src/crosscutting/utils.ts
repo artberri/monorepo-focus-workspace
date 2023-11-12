@@ -1,5 +1,8 @@
 import { posix } from "path"
-import { Uri, workspace } from "vscode"
+import type { Uri } from "vscode"
+import { workspace } from "vscode"
+
+export const extensionName = "monorepoFocusWorkspace"
 
 export const doesUriExists = async (uri: Uri): Promise<boolean> => {
 	try {

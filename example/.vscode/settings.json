@@ -1,3 +1,4 @@
 {
-  "focusWorkspace.enableLogs": true
+  "monorepoFocusWorkspace.enableLogs": true,
+  "files.exclude": {}
 }

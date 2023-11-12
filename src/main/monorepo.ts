@@ -1,6 +1,6 @@
-import { Uri, WorkspaceFolder } from "vscode"
-import { getRelativePath } from "./utils"
-import { Workspace } from "./workspace"
+import type { Uri, WorkspaceFolder } from "vscode"
+import { getRelativePath } from "../crosscutting/utils"
+import type { Workspace } from "./workspace"
 
 export class Monorepo {
 	public static create({
@@ -32,7 +32,26 @@ export class Monorepo {
 		return getRelativePath(this.workspaceFolder.uri, this.packageJsonUri)
 	}
 
-	public findWorkspaceDependencies(
+	public getIgnoreConfig(focusOn: MonorepoWorkspace): Record<string, boolean> {
+		const includedWorkspaces = [
+			...this.findWorkspaceDependencies(focusOn).map(
+				(workspace) => workspace.name,
+			),
+			focusOn.name,
+		]
+
+		return this.workspaces
+			.filter((w) => !includedWorkspaces.includes(w.name))
+			.reduce(
+				(acc, workspace) => {
+					acc[workspace.path] = true
+					return acc
+				},
+				{} as Record<string, boolean>,
+			)
+	}
+
+	private findWorkspaceDependencies(
 		workspace: MonorepoWorkspace,
 		alreadyFound: string[] = [],
 	): MonorepoWorkspace[] {

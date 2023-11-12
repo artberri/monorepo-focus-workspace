@@ -1,28 +1,27 @@
 {
-    "root": true,
-    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended","prettier"],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaVersion": 6,
-        "sourceType": "module"
-    },
-    "plugins": [
-        "@typescript-eslint"
+  "root": true,
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/strict-type-checked",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/naming-convention": [
+      "warn",
+      {
+        "selector": "import",
+        "format": ["camelCase", "PascalCase"]
+      }
     ],
-    "rules": {
-        "@typescript-eslint/naming-convention": [
-            "warn",
-            {
-                "selector": "import",
-                "format": [ "camelCase", "PascalCase" ]
-            }
-        ],
-        "eqeqeq": "error",
-        "no-throw-literal": "error"
-    },
-    "ignorePatterns": [
-        "out",
-        "dist",
-        "**/*.d.ts"
-    ]
+    "@typescript-eslint/consistent-type-imports": "error",
+    "eqeqeq": "error",
+    "no-throw-literal": "error"
+  },
+  "ignorePatterns": ["out", "dist", "**/*.d.ts"]
 }
