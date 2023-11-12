@@ -11,7 +11,7 @@ export const focusCommand = async () => {
 
 	if (!monorepos[0]) {
 		logger.logError(`Monorepos not found`)
-		window.showWarningMessage(
+		await window.showWarningMessage(
 			"Monorepo not found. Check that a `package.json` file exists in the root of your workspace folder and that includes a `workspaces` property. If you are using a custom path for your `package.json` file, check that the `monorepoFocusWorkspace.rootPackageJsonRelativePath` setting is correct.",
 		)
 		return
@@ -39,7 +39,7 @@ export const focusCommand = async () => {
 
 	if (selectedMonorepo.workspaces.length === 0) {
 		logger.logError(`Workspaces not found on Monorepo`)
-		window.showWarningMessage(
+		await window.showWarningMessage(
 			"Workspaces not found on Monorepo. Check that the `workspaces` property of your `package.json` file is not empty.",
 		)
 		return
@@ -69,7 +69,7 @@ export const focusCommand = async () => {
 
 	const ignoredFiles = selectedMonorepo.getIgnoreConfig(picked.workspace)
 
-	Config.instance().updateIgnoredFiles(
+	await Config.instance().updateIgnoredFiles(
 		selectedMonorepo.name,
 		selectedMonorepo.workspaceFolder,
 		ignoredFiles,

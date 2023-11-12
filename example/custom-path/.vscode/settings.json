@@ -1,0 +1,5 @@
+{
+  "monorepoFocusWorkspace.enableLogs": true,
+  "monorepoFocusWorkspace.rootPackageJsonRelativePath": "monorepo/package.json",
+  "files.exclude": {}
+}

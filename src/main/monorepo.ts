@@ -1,5 +1,5 @@
 import type { Uri, WorkspaceFolder } from "vscode"
-import { getRelativePath } from "../crosscutting/utils"
+import { getRelativePath, joinPaths } from "../crosscutting/utils"
 import type { Workspace } from "./workspace"
 
 export class Monorepo {
@@ -42,13 +42,10 @@ export class Monorepo {
 
 		return this.workspaces
 			.filter((w) => !includedWorkspaces.includes(w.name))
-			.reduce(
-				(acc, workspace) => {
-					acc[workspace.path] = true
-					return acc
-				},
-				{} as Record<string, boolean>,
-			)
+			.reduce<Record<string, boolean>>((acc, workspace) => {
+				acc[workspace.ignorePath] = true
+				return acc
+			}, {})
 	}
 
 	private findWorkspaceDependencies(
@@ -107,6 +104,7 @@ export class Monorepo {
 				mapMonorepoWorkspace({
 					workspaceNames,
 					monorepoPackageJsonUri: this.packageJsonUri,
+					workspaceFolderUri: this.workspaceFolder.uri,
 				}),
 			)
 			.sort((a, b) => {
@@ -121,6 +119,7 @@ export class Monorepo {
 export interface MonorepoWorkspace {
 	name: string
 	path: string
+	ignorePath: string
 	emoji: "📦" | "🛠️" | "🚀"
 	weight: number
 	dependencies: string[]
@@ -131,13 +130,21 @@ const mapMonorepoWorkspace =
 	({
 		workspaceNames,
 		monorepoPackageJsonUri,
+		workspaceFolderUri,
 	}: {
 		workspaceNames: string[]
 		monorepoPackageJsonUri: Uri
+		workspaceFolderUri: Uri
 	}) =>
 	(workspace: Workspace): MonorepoWorkspace => {
 		const path = getRelativePath(
 			monorepoPackageJsonUri,
+			workspace.packageJsonUri,
+		)
+		const ignorePath = getRelativePath(
+			workspaceFolderUri.with({
+				path: joinPaths(workspaceFolderUri.path, "sample-file.txt"),
+			}),
 			workspace.packageJsonUri,
 		)
 		const emoji = path.startsWith("apps")
@@ -155,6 +162,7 @@ const mapMonorepoWorkspace =
 		return {
 			name: workspace.name,
 			path,
+			ignorePath,
 			weight,
 			emoji,
 			dependencies: workspace.dependencies.filter((dependency) =>

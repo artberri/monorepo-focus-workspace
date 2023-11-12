@@ -38,10 +38,10 @@ export class Logger {
 			// plugins that don't return the expected error.
 			this.outputChannel.appendLine(error)
 		} else if (error instanceof Error) {
-			if (error?.message) {
+			if (error.message) {
 				this.logMessage(error.message, "ERROR")
 			}
-			if (error?.stack) {
+			if (error.stack) {
 				this.outputChannel.appendLine(error.stack)
 			}
 		} else if (error) {

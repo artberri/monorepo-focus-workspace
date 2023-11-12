@@ -16,7 +16,7 @@ export const doesUriExists = async (uri: Uri): Promise<boolean> => {
 export const readJson = async <T>(fileUri: Uri): Promise<T> => {
 	const readData = await workspace.fs.readFile(fileUri)
 	const readStr = Buffer.from(readData).toString("utf8")
-	return JSON.parse(readStr)
+	return JSON.parse(readStr) as T
 }
 
 export const isNotNil = <T>(value: T | null | undefined): value is T =>

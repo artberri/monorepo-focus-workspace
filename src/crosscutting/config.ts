@@ -1,6 +1,6 @@
 import type { WorkspaceFolder } from "vscode"
 import { ConfigurationTarget, window, workspace } from "vscode"
-import { extensionName } from "./utils"
+import { extensionName, isNotNil } from "./utils"
 
 export interface MonorepoFocusWorkspaceVSCodeConfig {
 	enableLogs: boolean
@@ -10,7 +10,7 @@ export interface MonorepoFocusWorkspaceVSCodeConfig {
 }
 
 export class Config {
-	private static _instance: Config
+	private static _instance: Config | undefined
 	private readonly subscription: { dispose(): void }
 	public readonly enableLogs: boolean
 
@@ -19,7 +19,7 @@ export class Config {
 		this.enableLogs = enableLogs
 		this.subscription = workspace.onDidChangeConfiguration((event) => {
 			if (event.affectsConfiguration(`${extensionName}.enableLogs`)) {
-				window.showWarningMessage(
+				void window.showWarningMessage(
 					`Reload required to apply changes to "${extensionName}.enableLogs".`,
 				)
 			}
@@ -38,11 +38,11 @@ export class Config {
 		return getConfig()
 	}
 
-	public updateIgnoredFiles(
+	public async updateIgnoredFiles(
 		monorepoName: string,
 		workspaceFolder: WorkspaceFolder,
 		ignoredFiles: Record<string, boolean>,
-	): void {
+	): Promise<void> {
 		const { configurationTarget, managedFilesIgnoreEntries } =
 			Config.instance().getConfig()
 
@@ -52,29 +52,33 @@ export class Config {
 		)
 
 		;(managedFilesIgnoreEntries[monorepoName] ?? []).forEach((entry) => {
-			delete existingConfiguration[entry]
+			existingConfiguration.delete(entry)
 		})
 
-		workspace.getConfiguration("files", workspaceFolder).update(
-			"exclude",
-			{
-				...existingConfiguration,
-				...ignoredFiles,
-			},
-			configurationTarget,
-		)
+		await Promise.all([
+			workspace.getConfiguration("files", workspaceFolder).update(
+				"exclude",
+				{
+					...Object.fromEntries(existingConfiguration.entries()),
+					...ignoredFiles,
+				},
+				configurationTarget,
+			),
 
-		workspace.getConfiguration(extensionName).update(
-			"managedFilesIgnoreEntries",
-			{
-				...managedFilesIgnoreEntries,
-				[monorepoName]: Object.keys(ignoredFiles),
-			},
-			configurationTarget,
-		)
+			workspace.getConfiguration(extensionName).update(
+				"managedFilesIgnoreEntries",
+				{
+					...managedFilesIgnoreEntries,
+					[monorepoName]: Object.keys(ignoredFiles),
+				},
+				configurationTarget,
+			),
+		])
 	}
 
-	public resetIgnoredFiles(workspaceFolders: WorkspaceFolder[]): void {
+	public async resetIgnoredFiles(
+		workspaceFolders: WorkspaceFolder[],
+	): Promise<void> {
 		const { configurationTarget, managedFilesIgnoreEntries } =
 			Config.instance().getConfig()
 
@@ -82,24 +86,35 @@ export class Config {
 			managedFilesIgnoreEntries,
 		).flat()
 
-		workspaceFolders.forEach((workspaceFolder) => {
-			const existingConfiguration = getExistingExcludedFiles(
-				workspaceFolder,
-				configurationTarget,
-			)
+		await Promise.all([
+			workspaceFolders.map(async (workspaceFolder) => {
+				const existingConfiguration = getExistingExcludedFiles(
+					workspaceFolder,
+					configurationTarget,
+				)
 
-			allManagedFilesIgnoreEntries.forEach((entry) => {
-				delete existingConfiguration[entry]
-			})
+				allManagedFilesIgnoreEntries.forEach((entry) => {
+					existingConfiguration.delete(entry)
+				})
 
-			workspace
-				.getConfiguration("files", workspaceFolder)
-				.update("exclude", existingConfiguration, configurationTarget)
-
-			workspace
-				.getConfiguration(extensionName)
-				.update("managedFilesIgnoreEntries", undefined, configurationTarget)
-		})
+				await Promise.all([
+					workspace
+						.getConfiguration("files", workspaceFolder)
+						.update(
+							"exclude",
+							Object.fromEntries(existingConfiguration.entries()),
+							configurationTarget,
+						),
+					workspace
+						.getConfiguration(extensionName)
+						.update(
+							"managedFilesIgnoreEntries",
+							undefined,
+							configurationTarget,
+						),
+				])
+			}),
+		])
 	}
 
 	public dispose(): void {
@@ -110,19 +125,19 @@ export class Config {
 function getExistingExcludedFiles(
 	workspaceFolder: WorkspaceFolder,
 	configurationTarget: ConfigurationTarget,
-): Record<string, boolean> {
+): Map<string, boolean> {
 	const existingConfiguration = workspace
 		.getConfiguration("files", workspaceFolder)
 		.inspect<Record<string, boolean>>("exclude")
 
 	switch (configurationTarget) {
 		case ConfigurationTarget.Global:
-			return existingConfiguration?.globalValue ?? {}
+			return mapRecordToMap(existingConfiguration?.globalValue ?? {})
 		case ConfigurationTarget.Workspace:
-			return existingConfiguration?.workspaceValue ?? {}
+			return mapRecordToMap(existingConfiguration?.workspaceValue ?? {})
 		case ConfigurationTarget.WorkspaceFolder:
 		default:
-			return existingConfiguration?.workspaceFolderValue ?? {}
+			return mapRecordToMap(existingConfiguration?.workspaceFolderValue ?? {})
 	}
 }
 
@@ -131,18 +146,24 @@ function getConfig(): MonorepoFocusWorkspaceVSCodeConfig {
 
 	return {
 		enableLogs: !!config.enableLogs,
-		rootPackageJsonRelativePath: config.rootPackageJsonRelativePath?.toString(),
-		configurationTarget: mapConfigurationTarget(config.configurationTarget),
+		rootPackageJsonRelativePath: (
+			(config.rootPackageJsonRelativePath as string | undefined) ??
+			"package.json"
+		).toString(),
+		configurationTarget: mapConfigurationTarget(
+			config.configurationTarget as string | undefined,
+		),
 		managedFilesIgnoreEntries: config.managedFilesIgnoreEntries
-			? Object.entries(config.managedFilesIgnoreEntries).reduce(
-					(acc, [key, value]) => {
-						acc[key.toString()] = Array.isArray(value)
-							? value.map((path) => path?.toString())
-							: []
-						return acc
-					},
-					{} as Record<string, string[]>,
-			  )
+			? Object.entries(
+					(config.managedFilesIgnoreEntries as object | undefined) ?? {},
+			  ).reduce<Record<string, string[]>>((acc, [key, value]) => {
+					acc[key.toString()] = Array.isArray(value)
+						? value
+								.map((path: string | undefined) => path?.toString())
+								.filter(isNotNil)
+						: []
+					return acc
+			  }, {})
 			: {},
 	}
 }
@@ -158,3 +179,9 @@ const mapConfigurationTarget = (input?: string): ConfigurationTarget => {
 			return ConfigurationTarget.Workspace
 	}
 }
+
+export const mapRecordToMap = (data: Record<string, boolean>) =>
+	Object.entries(data).reduce<Map<string, boolean>>((acc, [key, value]) => {
+		acc.set(key, value)
+		return acc
+	}, new Map())

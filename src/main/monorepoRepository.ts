@@ -13,8 +13,9 @@ import {
 import { Monorepo } from "./monorepo"
 import type { Workspace } from "./workspace"
 
-interface PackageJson {
+export interface PackageJson {
 	name: string
+	version?: string
 	workspaces?: string[]
 	dependencies?: Record<string, string>
 	devDependencies?: Record<string, string>
@@ -99,14 +100,12 @@ const getWorkspacePackageJsons =
 	}) =>
 	async (workspacePattern: string): Promise<Uri[]> => {
 		const logger = Logger.instance()
-		const fullPattern = `${getDirname(
-			rootPackageJsonRelativePath,
-		)}/${workspacePattern}`
-		logger.logInfo(`Searching files using full pattern ${fullPattern}...`)
-		const searchPattern = new RelativePattern(
-			folder,
-			toGlobPattern(`${fullPattern}/package.json`),
+		const fullPattern = toGlobPattern(
+			`${getDirname(
+				rootPackageJsonRelativePath,
+			)}/${workspacePattern}/package.json`,
 		)
+		const searchPattern = new RelativePattern(folder, fullPattern)
 		logger.logInfo(`Searching files using pattern ${searchPattern.pattern}...`)
 
 		return workspace.findFiles(searchPattern, null)

@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "project1"
+		},
+		{
+			"path": "project2"
+		}
+	],
+	"settings": {
+		"monorepoFocusWorkspace.enableLogs": true,
+		"monorepoFocusWorkspace.configurationTarget": "workspace-folder"
+	}
+}
