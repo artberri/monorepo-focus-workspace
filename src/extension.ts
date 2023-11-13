@@ -1,6 +1,6 @@
 import type { ExtensionContext } from "vscode"
 import { commands } from "vscode"
-import { focusCommand } from "./commands/focus"
+import { FocusMode, focusCommand } from "./commands/focus"
 import { resetCommand } from "./commands/reset"
 import { Config } from "./crosscutting/config"
 import { Logger } from "./crosscutting/logger"
@@ -19,7 +19,17 @@ export function activate(context: ExtensionContext) {
 
 	const focusCommandDisposable = commands.registerCommand(
 		`${extensionName}.focus`,
-		focusCommand,
+		focusCommand(FocusMode.Normal),
+	)
+
+	const focusWithoutDevDependenciesCommandDisposable = commands.registerCommand(
+		`${extensionName}.focusWithoutDevDependencies`,
+		focusCommand(FocusMode.WithoutDevDependencies),
+	)
+
+	const focusOnlyCommandDisposable = commands.registerCommand(
+		`${extensionName}.focusOnly`,
+		focusCommand(FocusMode.Only),
 	)
 
 	const resetCommandDisposable = commands.registerCommand(
@@ -31,6 +41,8 @@ export function activate(context: ExtensionContext) {
 		logger,
 		config,
 		focusCommandDisposable,
+		focusWithoutDevDependenciesCommandDisposable,
+		focusOnlyCommandDisposable,
 		resetCommandDisposable,
 	)
 }

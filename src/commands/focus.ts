@@ -3,7 +3,13 @@ import { Config } from "../crosscutting/config"
 import { Logger } from "../crosscutting/logger"
 import { getIgnoreConfig, getMonorepos } from "../main/monorepoService"
 
-export const focusCommand = async () => {
+export const enum FocusMode {
+	Normal = 1,
+	WithoutDevDependencies = 2,
+	Only = 3,
+}
+
+export const focusCommand = (mode: FocusMode) => async () => {
 	const logger = Logger.instance()
 	logger.logInfo("Command monorepoFocusWorkspace.focus called")
 
@@ -67,10 +73,16 @@ export const focusCommand = async () => {
 		`Picked this ${selectedMonorepo.name}/${picked.workspace.name} workspace`,
 	)
 
-	const toKeepWorkspaces = [
-		picked.workspace,
-		...selectedMonorepo.getWorkspaceDependencies(picked.workspace, true),
-	]
+	const toKeepWorkspaces =
+		mode === FocusMode.Only
+			? [picked.workspace]
+			: [
+					picked.workspace,
+					...selectedMonorepo.getWorkspaceDependencies(
+						picked.workspace,
+						mode === FocusMode.Normal,
+					),
+			  ]
 
 	const ignoredFiles = await getIgnoreConfig(selectedMonorepo, toKeepWorkspaces)
 

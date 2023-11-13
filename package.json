@@ -32,6 +32,16 @@
         "category": "Monorepo Workspace"
       },
       {
+        "command": "monorepoFocusWorkspace.focusWithoutDevDependencies",
+        "title": "Focus Without Dev Dependencies On...",
+        "category": "Monorepo Workspace"
+      },
+      {
+        "command": "monorepoFocusWorkspace.focusOnly",
+        "title": "Focus Only On...",
+        "category": "Monorepo Workspace"
+      },
+      {
         "command": "monorepoFocusWorkspace.reset",
         "title": "Reset Focus",
         "category": "Monorepo Workspace"

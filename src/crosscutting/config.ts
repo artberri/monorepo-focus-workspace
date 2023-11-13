@@ -40,8 +40,10 @@ export class Config {
 		return Config._instance
 	}
 
-	public getConfig(): MonorepoFocusWorkspaceVSCodeConfig {
-		return getConfig()
+	public getConfig(
+		workspaceFolder: WorkspaceFolder,
+	): MonorepoFocusWorkspaceVSCodeConfig {
+		return getConfig(workspaceFolder)
 	}
 
 	public async updateIgnoredFiles(
@@ -50,7 +52,8 @@ export class Config {
 		workspaceFolder: WorkspaceFolder,
 		ignoredFiles: Record<string, boolean>,
 	): Promise<void> {
-		const { configurationTarget, internal } = Config.instance().getConfig()
+		const { configurationTarget, internal } =
+			Config.instance().getConfig(workspaceFolder)
 
 		const existingConfiguration = getExistingExcludedFiles(
 			workspaceFolder,
@@ -90,18 +93,18 @@ export class Config {
 	public async resetIgnoredFiles(
 		workspaceFolders: WorkspaceFolder[],
 	): Promise<void> {
-		const { configurationTarget, internal } = Config.instance().getConfig()
-
-		const allManagedFilesIgnoreEntries = Object.values(internal)
-			.map((i) => i.managedFilesIgnoreEntries)
-			.flat()
-
 		await Promise.all([
 			workspaceFolders.map(async (workspaceFolder) => {
+				const { configurationTarget, internal } =
+					Config.instance().getConfig(workspaceFolder)
 				const existingConfiguration = getExistingExcludedFiles(
 					workspaceFolder,
 					configurationTarget,
 				)
+
+				const allManagedFilesIgnoreEntries = Object.values(internal)
+					.map((i) => i.managedFilesIgnoreEntries)
+					.flat()
 
 				allManagedFilesIgnoreEntries.forEach((entry) => {
 					existingConfiguration.delete(entry)
@@ -136,6 +139,8 @@ function getExistingExcludedFiles(
 		.getConfiguration("files", workspaceFolder)
 		.inspect<Record<string, boolean>>("exclude")
 
+	console.log({ existingConfiguration })
+
 	switch (configurationTarget) {
 		case ConfigurationTarget.Global:
 			return mapRecordToMap(existingConfiguration?.globalValue ?? {})
@@ -147,8 +152,10 @@ function getExistingExcludedFiles(
 	}
 }
 
-function getConfig(): MonorepoFocusWorkspaceVSCodeConfig {
-	const config = workspace.getConfiguration(extensionName)
+function getConfig(
+	workspaceFolder?: WorkspaceFolder,
+): MonorepoFocusWorkspaceVSCodeConfig {
+	const config = workspace.getConfiguration(extensionName, workspaceFolder)
 
 	return {
 		enableLogs: !!config.enableLogs,

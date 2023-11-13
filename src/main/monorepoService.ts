@@ -35,7 +35,7 @@ export const getMonorepo = async (
 	folder: WorkspaceFolder,
 ): Promise<Monorepo | undefined> => {
 	const logger = Logger.instance()
-	const { rootPackageJsonRelativePath } = Config.instance().getConfig()
+	const { rootPackageJsonRelativePath } = Config.instance().getConfig(folder)
 	const packageJSONPath = joinPaths(
 		folder.uri.path,
 		rootPackageJsonRelativePath,
