@@ -6,7 +6,13 @@ export interface MonorepoFocusWorkspaceVSCodeConfig {
 	enableLogs: boolean
 	rootPackageJsonRelativePath: string
 	configurationTarget: ConfigurationTarget
-	managedFilesIgnoreEntries: Record<string, string[]>
+	internal: Record<
+		string,
+		{
+			managedFilesIgnoreEntries: string[]
+			focusedWorkspace: string
+		}
+	>
 }
 
 export class Config {
@@ -39,21 +45,23 @@ export class Config {
 	}
 
 	public async updateIgnoredFiles(
+		pickedWorkspace: string,
 		monorepoName: string,
 		workspaceFolder: WorkspaceFolder,
 		ignoredFiles: Record<string, boolean>,
 	): Promise<void> {
-		const { configurationTarget, managedFilesIgnoreEntries } =
-			Config.instance().getConfig()
+		const { configurationTarget, internal } = Config.instance().getConfig()
 
 		const existingConfiguration = getExistingExcludedFiles(
 			workspaceFolder,
 			configurationTarget,
 		)
 
-		;(managedFilesIgnoreEntries[monorepoName] ?? []).forEach((entry) => {
-			existingConfiguration.delete(entry)
-		})
+		;(internal[monorepoName]?.managedFilesIgnoreEntries ?? []).forEach(
+			(entry) => {
+				existingConfiguration.delete(entry)
+			},
+		)
 
 		await Promise.all([
 			workspace.getConfiguration("files", workspaceFolder).update(
@@ -66,10 +74,13 @@ export class Config {
 			),
 
 			workspace.getConfiguration(extensionName).update(
-				"managedFilesIgnoreEntries",
+				"internal",
 				{
-					...managedFilesIgnoreEntries,
-					[monorepoName]: Object.keys(ignoredFiles),
+					...internal,
+					[monorepoName]: {
+						managedFilesIgnoreEntries: Object.keys(ignoredFiles),
+						focusedWorkspace: pickedWorkspace,
+					},
 				},
 				configurationTarget,
 			),
@@ -79,12 +90,11 @@ export class Config {
 	public async resetIgnoredFiles(
 		workspaceFolders: WorkspaceFolder[],
 	): Promise<void> {
-		const { configurationTarget, managedFilesIgnoreEntries } =
-			Config.instance().getConfig()
+		const { configurationTarget, internal } = Config.instance().getConfig()
 
-		const allManagedFilesIgnoreEntries = Object.values(
-			managedFilesIgnoreEntries,
-		).flat()
+		const allManagedFilesIgnoreEntries = Object.values(internal)
+			.map((i) => i.managedFilesIgnoreEntries)
+			.flat()
 
 		await Promise.all([
 			workspaceFolders.map(async (workspaceFolder) => {
@@ -107,11 +117,7 @@ export class Config {
 						),
 					workspace
 						.getConfiguration(extensionName)
-						.update(
-							"managedFilesIgnoreEntries",
-							undefined,
-							configurationTarget,
-						),
+						.update("internal", undefined, configurationTarget),
 				])
 			}),
 		])
@@ -153,15 +159,37 @@ function getConfig(): MonorepoFocusWorkspaceVSCodeConfig {
 		configurationTarget: mapConfigurationTarget(
 			config.configurationTarget as string | undefined,
 		),
-		managedFilesIgnoreEntries: config.managedFilesIgnoreEntries
-			? Object.entries(
-					(config.managedFilesIgnoreEntries as object | undefined) ?? {},
-			  ).reduce<Record<string, string[]>>((acc, [key, value]) => {
-					acc[key.toString()] = Array.isArray(value)
-						? value
-								.map((path: string | undefined) => path?.toString())
-								.filter(isNotNil)
-						: []
+		internal: config.internal
+			? Object.entries((config.internal as object | undefined) ?? {}).reduce<
+					Record<
+						string,
+						{
+							managedFilesIgnoreEntries: string[]
+							focusedWorkspace: string
+						}
+					>
+			  >((acc, [key, value]) => {
+					const valueObject =
+						(value as
+							| {
+									managedFilesIgnoreEntries?: string[]
+									focusedWorkspace?: string
+							  }
+							| undefined) ?? {}
+					if (typeof valueObject.focusedWorkspace !== "string") {
+						return acc
+					}
+
+					acc[key.toString()] = {
+						focusedWorkspace: valueObject.focusedWorkspace.toString(),
+						managedFilesIgnoreEntries: Array.isArray(
+							valueObject.managedFilesIgnoreEntries,
+						)
+							? valueObject.managedFilesIgnoreEntries
+									.map((path: string | undefined) => path?.toString())
+									.filter(isNotNil)
+							: [],
+					}
 					return acc
 			  }, {})
 			: {},

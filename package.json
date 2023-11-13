@@ -69,7 +69,7 @@
             ],
             "scope": "window"
           },
-          "monorepoFocusWorkspace.managedFilesIgnoreEntries": {
+          "monorepoFocusWorkspace.internal": {
             "type": "object",
             "default": {},
             "markdownDescription": "Do not edit this setting. It is managed by the extension.",

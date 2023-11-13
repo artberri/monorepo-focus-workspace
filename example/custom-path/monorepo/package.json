@@ -5,8 +5,9 @@
   "workspaces": [
     "packages/*",
     "apps/internal/*",
-    "apps/external/*",
-    "tools/*"
+    "apps/*",
+    "tools/*",
+    "others/*"
   ],
   "scripts": {},
   "devDependencies": {

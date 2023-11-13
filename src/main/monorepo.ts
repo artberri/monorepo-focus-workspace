@@ -120,7 +120,7 @@ export interface MonorepoWorkspace {
 	name: string
 	path: string
 	ignorePath: string
-	emoji: "📦" | "🛠️" | "🚀"
+	emoji: "📦" | "🛠️" | "🚀" | "🧩"
 	weight: number
 	dependencies: string[]
 	devDependencies: string[]
@@ -151,13 +151,17 @@ const mapMonorepoWorkspace =
 			? "🚀"
 			: path.startsWith("packages")
 			? "📦"
-			: "🛠️"
+			: path.startsWith("tools")
+			? "🛠️"
+			: "🧩"
 
 		const weight = path.startsWith("apps")
 			? 10
 			: path.startsWith("packages")
 			? 20
-			: 30
+			: path.startsWith("tools")
+			? 30
+			: 40
 
 		return {
 			name: workspace.name,

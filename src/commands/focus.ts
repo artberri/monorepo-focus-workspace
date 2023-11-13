@@ -70,6 +70,7 @@ export const focusCommand = async () => {
 	const ignoredFiles = selectedMonorepo.getIgnoreConfig(picked.workspace)
 
 	await Config.instance().updateIgnoredFiles(
+		picked.workspace.name,
 		selectedMonorepo.name,
 		selectedMonorepo.workspaceFolder,
 		ignoredFiles,
