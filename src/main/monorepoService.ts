@@ -5,11 +5,15 @@ import { Logger } from "../crosscutting/logger"
 import {
 	doesUriExists,
 	getDirname,
+	getParentFolder,
+	getRelativePath,
 	isNotNil,
 	joinPaths,
+	readDir,
 	readJson,
 	toGlobPattern,
 } from "../crosscutting/utils"
+import type { MonorepoWorkspace } from "./monorepo"
 import { Monorepo } from "./monorepo"
 import type { Workspace } from "./workspace"
 
@@ -87,7 +91,63 @@ export const getMonorepo = async (
 		workspaceFolder: folder,
 		workspaces,
 		packageJsonUri: rootPackageJson,
+		patterns: rootPackageJsonData.workspaces,
 	})
+}
+
+export const getIgnoreConfig = async (
+	monorepo: Monorepo,
+	toKeepWorkspaces: MonorepoWorkspace[],
+): Promise<Record<string, boolean>> => {
+	const logger = Logger.instance()
+
+	const pathsToAnalyze = [
+		monorepo.workspaceFolder.uri.fsPath,
+		joinPaths(monorepo.workspaceFolder.uri.fsPath, monorepo.fsPath),
+		...new Set(
+			monorepo.workspaces.map((workspace) =>
+				getParentFolder(
+					joinPaths(
+						monorepo.workspaceFolder.uri.fsPath,
+						monorepo.fsPath,
+						workspace.fsPath,
+					),
+				),
+			),
+		),
+	]
+
+	const toKeepPatterns = toKeepWorkspaces
+		.map((workspace) => joinPaths(monorepo.fsPath, workspace.fsPath))
+		.map(toGlobPattern)
+
+	const toHide = [
+		...new Set(
+			(
+				await Promise.all(
+					pathsToAnalyze.map((path) => {
+						logger.logInfo(`Looking for files in path ${path}`)
+						return readDir(path)
+					}),
+				)
+			).flat(),
+		),
+	]
+		.map((path) => getRelativePath(monorepo.workspaceFolder.uri.fsPath, path))
+		.map(toGlobPattern)
+		.filter((path) =>
+			toKeepPatterns.every(
+				(pattern) => !path.startsWith(pattern) && !pattern.startsWith(path),
+			),
+		)
+
+	logger.logInfo(`Ignoring paths ${toHide.join(", ")}`)
+
+	return toHide.reduce<Record<string, boolean>>((acc, path) => {
+		logger.logInfo(`Ignoring path ${path}`)
+		acc[path] = true
+		return acc
+	}, {})
 }
 
 const getWorkspacePackageJsons =

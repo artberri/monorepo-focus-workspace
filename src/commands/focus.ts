@@ -1,7 +1,7 @@
 import { window } from "vscode"
 import { Config } from "../crosscutting/config"
 import { Logger } from "../crosscutting/logger"
-import { getMonorepos } from "../main/monorepoRepository"
+import { getIgnoreConfig, getMonorepos } from "../main/monorepoService"
 
 export const focusCommand = async () => {
 	const logger = Logger.instance()
@@ -22,7 +22,7 @@ export const focusCommand = async () => {
 		const items = monorepos.map((monorepo) => ({
 			monorepo,
 			label: monorepo.name,
-			description: `at ${monorepo.path}`,
+			description: `at ${monorepo.workspaceFolderName}`,
 		}))
 		const pickedMonorepo = await window.showQuickPick(items, {
 			matchOnDescription: true,
@@ -49,7 +49,7 @@ export const focusCommand = async () => {
 		return {
 			workspace,
 			label: `${workspace.emoji} ${workspace.name}`,
-			description: `at ${workspace.path}`,
+			description: `at ${workspace.fsPath}`,
 		}
 	})
 
@@ -67,7 +67,12 @@ export const focusCommand = async () => {
 		`Picked this ${selectedMonorepo.name}/${picked.workspace.name} workspace`,
 	)
 
-	const ignoredFiles = selectedMonorepo.getIgnoreConfig(picked.workspace)
+	const toKeepWorkspaces = [
+		picked.workspace,
+		...selectedMonorepo.getWorkspaceDependencies(picked.workspace, true),
+	]
+
+	const ignoredFiles = await getIgnoreConfig(selectedMonorepo, toKeepWorkspaces)
 
 	await Config.instance().updateIgnoredFiles(
 		picked.workspace.name,

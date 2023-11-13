@@ -73,7 +73,7 @@ export class Config {
 				configurationTarget,
 			),
 
-			workspace.getConfiguration(extensionName).update(
+			workspace.getConfiguration(extensionName, workspaceFolder).update(
 				"internal",
 				{
 					...internal,
@@ -116,7 +116,7 @@ export class Config {
 							configurationTarget,
 						),
 					workspace
-						.getConfiguration(extensionName)
+						.getConfiguration(extensionName, workspaceFolder)
 						.update("internal", undefined, configurationTarget),
 				])
 			}),

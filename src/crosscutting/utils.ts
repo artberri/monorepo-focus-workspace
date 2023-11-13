@@ -1,6 +1,7 @@
+import { readdir } from "fs"
 import { posix } from "path"
 import type { Uri } from "vscode"
-import { workspace } from "vscode"
+import { window, workspace } from "vscode"
 
 export const extensionName = "monorepoFocusWorkspace"
 
@@ -22,10 +23,8 @@ export const readJson = async <T>(fileUri: Uri): Promise<T> => {
 export const isNotNil = <T>(value: T | null | undefined): value is T =>
 	value !== null && value !== undefined
 
-export const getRelativePath = (base: Uri, file: Uri): string => {
-	const baseDir = posix.dirname(base.path)
-	const fileDir = posix.dirname(file.path)
-	return posix.relative(baseDir, fileDir)
+export const getRelativePath = (base: string, file: string): string => {
+	return posix.relative(base, file)
 }
 
 export const getDirname = (file: string): string => {
@@ -44,4 +43,23 @@ export const toGlobPattern = (path: string): string => {
 	}
 
 	return globPath
+}
+
+export const getParentFolder = (fsPath: string): string => {
+	return posix.normalize(posix.join(fsPath, ".."))
+}
+
+export function readDir(path: string): Promise<string[]> {
+	return new Promise<string[]>((resolve) => {
+		readdir(path, (error, children) => {
+			if (error) {
+				void window.showErrorMessage(
+					`Error reading directory ${path}: ${error.message}`,
+				)
+				resolve([])
+				return
+			}
+			resolve(children.map((child) => posix.join(path, child)))
+		})
+	})
 }

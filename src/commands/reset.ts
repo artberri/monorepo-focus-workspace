@@ -1,6 +1,6 @@
 import { Config } from "../crosscutting/config"
 import { Logger } from "../crosscutting/logger"
-import { getMonorepos } from "../main/monorepoRepository"
+import { getMonorepos } from "../main/monorepoService"
 
 export const resetCommand = async () => {
 	const logger = Logger.instance()

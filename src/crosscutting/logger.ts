@@ -14,7 +14,7 @@ export class Logger {
 
 	private constructor() {}
 
-	private outputChannel = window.createOutputChannel("FocusWorkspace")
+	private outputChannel = window.createOutputChannel("Monorepo Focus Workspace")
 
 	public logInfo(message: string, data?: unknown): void {
 		if (!Config.instance().enableLogs) {

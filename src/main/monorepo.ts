@@ -1,5 +1,9 @@
 import type { Uri, WorkspaceFolder } from "vscode"
-import { getRelativePath, joinPaths } from "../crosscutting/utils"
+import {
+	getDirname,
+	getRelativePath,
+	toGlobPattern,
+} from "../crosscutting/utils"
 import type { Workspace } from "./workspace"
 
 export class Monorepo {
@@ -8,13 +12,21 @@ export class Monorepo {
 		workspaceFolder,
 		workspaces,
 		packageJsonUri,
+		patterns,
 	}: {
 		name: string
 		workspaceFolder: WorkspaceFolder
 		workspaces: Workspace[]
 		packageJsonUri: Uri
+		patterns: string[]
 	}) {
-		return new Monorepo(name, workspaceFolder, packageJsonUri, workspaces)
+		return new Monorepo(
+			name,
+			workspaceFolder,
+			packageJsonUri,
+			workspaces,
+			patterns,
+		)
 	}
 
 	public readonly workspaces: MonorepoWorkspace[]
@@ -24,17 +36,25 @@ export class Monorepo {
 		public readonly workspaceFolder: WorkspaceFolder,
 		public readonly packageJsonUri: Uri,
 		private readonly rawWorkspaces: Workspace[],
+		public readonly patterns: string[],
 	) {
 		this.workspaces = this.buildWorspaces()
 	}
 
-	public get path(): string {
-		return getRelativePath(this.workspaceFolder.uri, this.packageJsonUri)
+	public get workspaceFolderName(): string {
+		return this.workspaceFolder.name
+	}
+
+	public get fsPath(): string {
+		return getRelativePath(
+			this.workspaceFolder.uri.fsPath,
+			getDirname(this.packageJsonUri.fsPath),
+		)
 	}
 
 	public getIgnoreConfig(focusOn: MonorepoWorkspace): Record<string, boolean> {
 		const includedWorkspaces = [
-			...this.findWorkspaceDependencies(focusOn).map(
+			...this.findWorkspaceDependencies(focusOn, true).map(
 				(workspace) => workspace.name,
 			),
 			focusOn.name,
@@ -48,8 +68,16 @@ export class Monorepo {
 			}, {})
 	}
 
+	public getWorkspaceDependencies(
+		focusOn: MonorepoWorkspace,
+		withDevDependencies: boolean,
+	): MonorepoWorkspace[] {
+		return this.findWorkspaceDependencies(focusOn, withDevDependencies)
+	}
+
 	private findWorkspaceDependencies(
 		workspace: MonorepoWorkspace,
+		withDevDependencies: boolean,
 		alreadyFound: string[] = [],
 	): MonorepoWorkspace[] {
 		const dependencies = workspace.dependencies
@@ -66,19 +94,21 @@ export class Monorepo {
 				return found
 			})
 
-		const devDependencies = workspace.devDependencies
-			.filter((dependency) => !alreadyFound.includes(dependency))
-			.map((dependency) => {
-				const found = this.workspaces.find(
-					(workspace) => workspace.name === dependency,
-				)
-				if (!found) {
-					throw new Error(
-						`Could not find workspace ${dependency} in monorepo ${this.name}`,
-					)
-				}
-				return found
-			})
+		const devDependencies = withDevDependencies
+			? workspace.devDependencies
+					.filter((dependency) => !alreadyFound.includes(dependency))
+					.map((dependency) => {
+						const found = this.workspaces.find(
+							(workspace) => workspace.name === dependency,
+						)
+						if (!found) {
+							throw new Error(
+								`Could not find workspace ${dependency} in monorepo ${this.name}`,
+							)
+						}
+						return found
+					})
+			: []
 
 		const found = [...dependencies, ...devDependencies]
 
@@ -89,7 +119,7 @@ export class Monorepo {
 		return [
 			...found,
 			...found.flatMap((workspace) =>
-				this.findWorkspaceDependencies(workspace, [
+				this.findWorkspaceDependencies(workspace, withDevDependencies, [
 					...alreadyFound,
 					...found.map((workspace) => workspace.name),
 				]),
@@ -118,7 +148,7 @@ export class Monorepo {
 
 export interface MonorepoWorkspace {
 	name: string
-	path: string
+	fsPath: string
 	ignorePath: string
 	emoji: "📦" | "🛠️" | "🚀" | "🧩"
 	weight: number
@@ -138,14 +168,14 @@ const mapMonorepoWorkspace =
 	}) =>
 	(workspace: Workspace): MonorepoWorkspace => {
 		const path = getRelativePath(
-			monorepoPackageJsonUri,
-			workspace.packageJsonUri,
+			getDirname(monorepoPackageJsonUri.fsPath),
+			getDirname(workspace.packageJsonUri.fsPath),
 		)
-		const ignorePath = getRelativePath(
-			workspaceFolderUri.with({
-				path: joinPaths(workspaceFolderUri.path, "sample-file.txt"),
-			}),
-			workspace.packageJsonUri,
+		const ignorePath = toGlobPattern(
+			getRelativePath(
+				workspaceFolderUri.fsPath,
+				getDirname(workspace.packageJsonUri.fsPath),
+			),
 		)
 		const emoji = path.startsWith("apps")
 			? "🚀"
@@ -165,7 +195,7 @@ const mapMonorepoWorkspace =
 
 		return {
 			name: workspace.name,
-			path,
+			fsPath: path,
 			ignorePath,
 			weight,
 			emoji,
