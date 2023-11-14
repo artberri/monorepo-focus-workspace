@@ -2,10 +2,6 @@
   "name": "project1",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
   "scripts": {},
   "devDependencies": {
     "@types/jest": "^29.5.4",

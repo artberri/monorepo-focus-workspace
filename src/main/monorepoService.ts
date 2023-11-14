@@ -11,6 +11,7 @@ import {
 	joinPaths,
 	readDir,
 	readJson,
+	readYaml,
 	toGlobPattern,
 } from "../crosscutting/utils"
 import type { MonorepoWorkspace } from "./monorepo"
@@ -20,7 +21,7 @@ import type { Workspace } from "./workspace"
 export interface PackageJson {
 	name: string
 	version?: string
-	workspaces?: string[]
+	workspaces?: string[] | { packages: string[] }
 	dependencies?: Record<string, string>
 	devDependencies?: Record<string, string>
 }
@@ -59,18 +60,22 @@ export const getMonorepo = async (
 		return undefined
 	}
 
-	if (!rootPackageJsonData.workspaces) {
+	const patterns = await getWorkspacePatterns(
+		rootPackageJson,
+		rootPackageJsonData,
+	)
+	if (patterns.length === 0) {
 		logger.logInfo(
 			`This package.json has not workspaces: ${rootPackageJson.fsPath}`,
 		)
 		return undefined
 	}
 
-	logger.logInfo(`Found ${rootPackageJsonData.workspaces.join()} workspaces`)
+	logger.logInfo(`Found ${patterns.join()} workspaces`)
 
 	const workspacePackageJsons = (
 		await Promise.all(
-			rootPackageJsonData.workspaces.map(
+			patterns.map(
 				getWorkspacePackageJsons({ folder, rootPackageJsonRelativePath }),
 			),
 		)
@@ -91,7 +96,7 @@ export const getMonorepo = async (
 		workspaceFolder: folder,
 		workspaces,
 		packageJsonUri: rootPackageJson,
-		patterns: rootPackageJsonData.workspaces,
+		patterns,
 	})
 }
 
@@ -192,5 +197,55 @@ const getRawWorkspace = async (
 		devDependencies: packageJsonData.devDependencies
 			? Object.keys(packageJsonData.devDependencies)
 			: [],
+	}
+}
+
+const getWorkspacePatterns = async (
+	rootPackageJson: Uri,
+	rootPackageJsonData: PackageJson,
+): Promise<string[]> => {
+	if (
+		Array.isArray(rootPackageJsonData.workspaces) &&
+		rootPackageJsonData.workspaces.length > 0
+	) {
+		return rootPackageJsonData.workspaces
+	}
+
+	if (
+		rootPackageJsonData.workspaces &&
+		!Array.isArray(rootPackageJsonData.workspaces) &&
+		Array.isArray(rootPackageJsonData.workspaces.packages) &&
+		rootPackageJsonData.workspaces.packages.length > 0
+	) {
+		return rootPackageJsonData.workspaces.packages
+	}
+
+	return await getPnpmWorkspacePatterns(rootPackageJson)
+}
+
+const getPnpmWorkspacePatterns = async (
+	rootPackageJson: Uri,
+): Promise<string[]> => {
+	const logger = Logger.instance()
+	const pnpmWorkspaceYaml = rootPackageJson.with({
+		path: joinPaths(getDirname(rootPackageJson.fsPath), "pnpm-workspace.yaml"),
+	})
+	const pnpmWorkspaceExists = await doesUriExists(pnpmWorkspaceYaml)
+	if (!pnpmWorkspaceExists) {
+		logger.logInfo(
+			`Can not find root package.json file ${rootPackageJson.fsPath}`,
+		)
+		return []
+	}
+
+	let pnpmWorkspaceYamlData: { packages?: string[] }
+	try {
+		pnpmWorkspaceYamlData = await readYaml<{ packages?: string[] }>(
+			pnpmWorkspaceYaml,
+		)
+		return pnpmWorkspaceYamlData.packages ?? []
+	} catch (error) {
+		logger.logError(`Can not parse YAML file ${rootPackageJson.fsPath}`, error)
+		return []
 	}
 }
