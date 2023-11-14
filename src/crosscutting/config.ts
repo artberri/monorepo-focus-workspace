@@ -91,39 +91,71 @@ export class Config {
 	}
 
 	public async resetIgnoredFiles(
-		workspaceFolders: WorkspaceFolder[],
+		workspaceFolder: WorkspaceFolder,
 	): Promise<void> {
+		const { configurationTarget, internal } =
+			Config.instance().getConfig(workspaceFolder)
+		const existingConfiguration = getExistingExcludedFiles(
+			workspaceFolder,
+			configurationTarget,
+		)
+
+		const allManagedFilesIgnoreEntries = Object.values(internal)
+			.map((i) => i.managedFilesIgnoreEntries)
+			.flat()
+
+		allManagedFilesIgnoreEntries.forEach((entry) => {
+			existingConfiguration.delete(entry)
+		})
+
 		await Promise.all([
-			workspaceFolders.map(async (workspaceFolder) => {
-				const { configurationTarget, internal } =
-					Config.instance().getConfig(workspaceFolder)
-				const existingConfiguration = getExistingExcludedFiles(
-					workspaceFolder,
+			workspace
+				.getConfiguration("files", workspaceFolder)
+				.update(
+					"exclude",
+					Object.fromEntries(existingConfiguration.entries()),
 					configurationTarget,
-				)
-
-				const allManagedFilesIgnoreEntries = Object.values(internal)
-					.map((i) => i.managedFilesIgnoreEntries)
-					.flat()
-
-				allManagedFilesIgnoreEntries.forEach((entry) => {
-					existingConfiguration.delete(entry)
-				})
-
-				await Promise.all([
-					workspace
-						.getConfiguration("files", workspaceFolder)
-						.update(
-							"exclude",
-							Object.fromEntries(existingConfiguration.entries()),
-							configurationTarget,
-						),
-					workspace
-						.getConfiguration(extensionName, workspaceFolder)
-						.update("internal", undefined, configurationTarget),
-				])
-			}),
+				),
+			workspace
+				.getConfiguration(extensionName, workspaceFolder)
+				.update("internal", undefined, configurationTarget),
 		])
+	}
+
+	public async toggleIgnoredFiles(
+		workspaceFolder: WorkspaceFolder,
+	): Promise<boolean> {
+		const { configurationTarget, internal } =
+			Config.instance().getConfig(workspaceFolder)
+		const existingConfiguration = getExistingExcludedFiles(
+			workspaceFolder,
+			configurationTarget,
+		)
+
+		const activeFocusedWorkspaces = Object.values(internal)
+		if (activeFocusedWorkspaces.length === 0) {
+			return false
+		}
+
+		const allManagedFilesIgnoreEntries = activeFocusedWorkspaces
+			.map((i) => i.managedFilesIgnoreEntries)
+			.flat()
+
+		allManagedFilesIgnoreEntries.forEach((entry) => {
+			existingConfiguration.set(entry, !existingConfiguration.get(entry))
+		})
+
+		await Promise.all([
+			workspace
+				.getConfiguration("files", workspaceFolder)
+				.update(
+					"exclude",
+					Object.fromEntries(existingConfiguration.entries()),
+					configurationTarget,
+				),
+		])
+
+		return true
 	}
 
 	public dispose(): void {

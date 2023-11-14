@@ -8,7 +8,9 @@ export const resetCommand = async () => {
 
 	const monorepos = await getMonorepos()
 
-	await Config.instance().resetIgnoredFiles(
-		monorepos.map((monorepo) => monorepo.workspaceFolder),
+	await Promise.all(
+		monorepos.map((monorepo) =>
+			Config.instance().resetIgnoredFiles(monorepo.workspaceFolder),
+		),
 	)
 }

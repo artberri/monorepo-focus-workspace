@@ -11,7 +11,9 @@ export const enum FocusMode {
 
 export const focusCommand = (mode: FocusMode) => async () => {
 	const logger = Logger.instance()
-	logger.logInfo("Command monorepoFocusWorkspace.focus called")
+	logger.logInfo(
+		`Command monorepoFocusWorkspace.focus called with mode ${mode}`,
+	)
 
 	const monorepos = await getMonorepos()
 

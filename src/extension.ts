@@ -2,6 +2,7 @@ import type { ExtensionContext } from "vscode"
 import { commands } from "vscode"
 import { FocusMode, focusCommand } from "./commands/focus"
 import { resetCommand } from "./commands/reset"
+import { toggleCommand } from "./commands/toggle"
 import { Config } from "./crosscutting/config"
 import { Logger } from "./crosscutting/logger"
 import { extensionName } from "./crosscutting/utils"
@@ -37,6 +38,11 @@ export function activate(context: ExtensionContext) {
 		resetCommand,
 	)
 
+	const toggleCommandDisposable = commands.registerCommand(
+		`${extensionName}.toggle`,
+		toggleCommand,
+	)
+
 	context.subscriptions.push(
 		logger,
 		config,
@@ -44,6 +50,7 @@ export function activate(context: ExtensionContext) {
 		focusWithoutDevDependenciesCommandDisposable,
 		focusOnlyCommandDisposable,
 		resetCommandDisposable,
+		toggleCommandDisposable,
 	)
 }
 

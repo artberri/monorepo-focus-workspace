@@ -45,6 +45,11 @@
         "command": "monorepoFocusWorkspace.reset",
         "title": "Reset Focus",
         "category": "Monorepo Workspace"
+      },
+      {
+        "command": "monorepoFocusWorkspace.toggle",
+        "title": "Toggle Focus",
+        "category": "Monorepo Workspace"
       }
     ],
     "configuration": [
