@@ -4,6 +4,7 @@ src/**
 example/**
 .gitignore
 .yarnrc
+.github/**
 **/tsconfig.json
 **/.editorconfig
 **/.eslintignore

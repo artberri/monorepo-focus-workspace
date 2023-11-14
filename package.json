@@ -2,7 +2,7 @@
   "name": "monorepo-focus-workspace",
   "displayName": "Monorepo Focus Workspace",
   "description": "Create a partial tree view to focus on a workspace in a monorepo. Supports NPM, Yarn, Pnpm and Lerna.",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "Alberto Varela",
@@ -93,7 +93,7 @@
           "monorepoFocusWorkspace.configurationTarget": {
             "type": "string",
             "default": "workspace",
-            "markdownDescription": "This extension needs to modify the `files.ignore` setting to hide folders. This setting specifies the scope of the setting change. If `workspace`, the setting will be modified in the workspace settings. If `workspace-folder`, the setting will be modified in the workspace folder settings. If `global`, the setting will be modified in the user settings",
+            "markdownDescription": "This extension needs to modify the `files.exclude` setting to hide folders. This setting specifies the scope of the setting change. If `workspace`, the setting will be modified in the workspace settings. If `workspace-folder`, the setting will be modified in the workspace folder settings. If `global`, the setting will be modified in the user settings",
             "enum": [
               "workspace",
               "workspace-folder",

@@ -142,7 +142,10 @@ export const getIgnoreConfig = async (
 		.map(toGlobPattern)
 		.filter((path) =>
 			toKeepPatterns.every(
-				(pattern) => !path.startsWith(pattern) && !pattern.startsWith(path),
+				(toKeepPattern) =>
+					!path.startsWith(`${toKeepPattern}/`) &&
+					!toKeepPattern.startsWith(`${path}/`) &&
+					path !== toKeepPattern,
 			),
 		)
 

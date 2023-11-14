@@ -1,0 +1,12 @@
+{
+  "name": "logger-api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {},
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "eslint-config-custom": "workspace:*",
+    "jest-presets": "workspace:*",
+    "tsconfig": "workspace:*"
+  }
+}
