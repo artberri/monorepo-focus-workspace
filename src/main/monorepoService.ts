@@ -103,7 +103,7 @@ export const getMonorepo = async (
 export const getIgnoreConfig = async (
 	monorepo: Monorepo,
 	toKeepWorkspaces: MonorepoWorkspace[],
-): Promise<Record<string, boolean>> => {
+): Promise<Map<string, boolean>> => {
 	const logger = Logger.instance()
 
 	const pathsToAnalyze = [
@@ -148,11 +148,11 @@ export const getIgnoreConfig = async (
 
 	logger.logInfo(`Ignoring paths ${toHide.join(", ")}`)
 
-	return toHide.reduce<Record<string, boolean>>((acc, path) => {
+	return toHide.reduce<Map<string, boolean>>((acc, path) => {
 		logger.logInfo(`Ignoring path ${path}`)
-		acc[path] = true
+		acc.set(path, true)
 		return acc
-	}, {})
+	}, new Map())
 }
 
 const getWorkspacePackageJsons =

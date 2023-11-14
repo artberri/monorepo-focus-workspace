@@ -50,7 +50,7 @@ export class Config {
 		pickedWorkspace: string,
 		monorepoName: string,
 		workspaceFolder: WorkspaceFolder,
-		ignoredFiles: Record<string, boolean>,
+		ignoredFiles: Map<string, boolean>,
 	): Promise<void> {
 		const { configurationTarget, internal } =
 			Config.instance().getConfig(workspaceFolder)
@@ -60,28 +60,33 @@ export class Config {
 			configurationTarget,
 		)
 
+		// Keep existingConfiguration entries that are not managed by this extension
 		;(internal[monorepoName]?.managedFilesIgnoreEntries ?? []).forEach(
 			(entry) => {
 				existingConfiguration.delete(entry)
 			},
 		)
 
+		// Do not add entries that are already being managed by the user
+		for (const existingConfigurationEntry of existingConfiguration.keys()) {
+			ignoredFiles.delete(existingConfigurationEntry)
+		}
+
 		await Promise.all([
 			workspace.getConfiguration("files", workspaceFolder).update(
 				"exclude",
 				{
+					...Object.fromEntries(ignoredFiles.entries()),
 					...Object.fromEntries(existingConfiguration.entries()),
-					...ignoredFiles,
 				},
 				configurationTarget,
 			),
-
 			workspace.getConfiguration(extensionName, workspaceFolder).update(
 				"internal",
 				{
 					...internal,
 					[monorepoName]: {
-						managedFilesIgnoreEntries: Object.keys(ignoredFiles),
+						managedFilesIgnoreEntries: Array.from(ignoredFiles.keys()),
 						focusedWorkspace: pickedWorkspace,
 					},
 				},
