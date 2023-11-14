@@ -220,7 +220,12 @@ const getWorkspacePatterns = async (
 		return rootPackageJsonData.workspaces.packages
 	}
 
-	return await getPnpmWorkspacePatterns(rootPackageJson)
+	const patterns = await getPnpmWorkspacePatterns(rootPackageJson)
+	if (patterns.length > 0) {
+		return patterns
+	}
+
+	return await getLernaWorkspacePatterns(rootPackageJson)
 }
 
 const getPnpmWorkspacePatterns = async (
@@ -233,7 +238,7 @@ const getPnpmWorkspacePatterns = async (
 	const pnpmWorkspaceExists = await doesUriExists(pnpmWorkspaceYaml)
 	if (!pnpmWorkspaceExists) {
 		logger.logInfo(
-			`Can not find root package.json file ${rootPackageJson.fsPath}`,
+			`Can not find root pnpm-workspace.yaml ${pnpmWorkspaceYaml.fsPath}`,
 		)
 		return []
 	}
@@ -245,7 +250,33 @@ const getPnpmWorkspacePatterns = async (
 		)
 		return pnpmWorkspaceYamlData.packages ?? []
 	} catch (error) {
-		logger.logError(`Can not parse YAML file ${rootPackageJson.fsPath}`, error)
+		logger.logError(
+			`Can not parse YAML file ${pnpmWorkspaceYaml.fsPath}`,
+			error,
+		)
+		return []
+	}
+}
+
+const getLernaWorkspacePatterns = async (
+	rootPackageJson: Uri,
+): Promise<string[]> => {
+	const logger = Logger.instance()
+	const lernaJson = rootPackageJson.with({
+		path: joinPaths(getDirname(rootPackageJson.fsPath), "lerna.json"),
+	})
+	const lernaWorkspaceExists = await doesUriExists(lernaJson)
+	if (!lernaWorkspaceExists) {
+		logger.logInfo(`Can not find root lerna.json file ${lernaJson.fsPath}`)
+		return []
+	}
+
+	let lernaWorkspaceJsonData: { packages?: string[] }
+	try {
+		lernaWorkspaceJsonData = await readJson<{ packages?: string[] }>(lernaJson)
+		return lernaWorkspaceJsonData.packages ?? []
+	} catch (error) {
+		logger.logError(`Can not parse JSON file ${lernaJson.fsPath}`, error)
 		return []
 	}
 }
