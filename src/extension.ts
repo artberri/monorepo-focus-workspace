@@ -33,6 +33,11 @@ export function activate(context: ExtensionContext) {
 		focusCommand(FocusMode.Only),
 	)
 
+	const focusPickCommandDisposable = commands.registerCommand(
+		`${extensionName}.focusPick`,
+		focusCommand(FocusMode.Pick),
+	)
+
 	const resetCommandDisposable = commands.registerCommand(
 		`${extensionName}.reset`,
 		resetCommand,
@@ -49,6 +54,7 @@ export function activate(context: ExtensionContext) {
 		focusCommandDisposable,
 		focusWithoutDevDependenciesCommandDisposable,
 		focusOnlyCommandDisposable,
+		focusPickCommandDisposable,
 		resetCommandDisposable,
 		toggleCommandDisposable,
 	)

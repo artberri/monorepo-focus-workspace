@@ -171,8 +171,6 @@ function getExistingExcludedFiles(
 		.getConfiguration("files", workspaceFolder)
 		.inspect<Record<string, boolean>>("exclude")
 
-	console.log({ existingConfiguration })
-
 	switch (configurationTarget) {
 		case ConfigurationTarget.Global:
 			return mapRecordToMap(existingConfiguration?.globalValue ?? {})

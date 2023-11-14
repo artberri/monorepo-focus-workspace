@@ -13,7 +13,24 @@
     "type": "git",
     "url": "https://github.com/artberri/vscode-focus-workspace.git"
   },
+  "bugs": {
+    "url": "https://github.com/artberri/monorepo-focus-workspace/issues"
+  },
   "homepage": "https://github.com/artberri/vscode-focus-workspace#readme",
+  "keywords": [
+    "vscode",
+    "code",
+    "extension",
+    "workspace",
+    "monorepo",
+    "npm",
+    "yarn",
+    "pnpm",
+    "lerna",
+    "focus",
+    "hide",
+    "show"
+  ],
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -27,29 +44,34 @@
   "contributes": {
     "commands": [
       {
-        "command": "monorepoFocusWorkspace.focus",
-        "title": "Focus On...",
-        "category": "Monorepo Workspace"
+        "command": "monorepoFocusWorkspace.focusOnly",
+        "title": "Focus On Workspace",
+        "category": "Monorepo"
       },
       {
         "command": "monorepoFocusWorkspace.focusWithoutDevDependencies",
-        "title": "Focus Without Dev Dependencies On...",
-        "category": "Monorepo Workspace"
+        "title": "Focus On Workspace And Its Prod Dependencies",
+        "category": "Monorepo"
       },
       {
-        "command": "monorepoFocusWorkspace.focusOnly",
-        "title": "Focus Only On...",
-        "category": "Monorepo Workspace"
+        "command": "monorepoFocusWorkspace.focus",
+        "title": "Focus On Workspace And All Its Dependencies",
+        "category": "Monorepo"
       },
       {
         "command": "monorepoFocusWorkspace.reset",
-        "title": "Reset Focus",
-        "category": "Monorepo Workspace"
+        "title": "Reset Workspace Focus",
+        "category": "Monorepo"
       },
       {
         "command": "monorepoFocusWorkspace.toggle",
-        "title": "Toggle Focus",
-        "category": "Monorepo Workspace"
+        "title": "Toggle Workspace Focus",
+        "category": "Monorepo"
+      },
+      {
+        "command": "monorepoFocusWorkspace.focusPick",
+        "title": "Pick Workspaces To Focus On",
+        "category": "Monorepo"
       }
     ],
     "configuration": [
@@ -105,7 +127,9 @@
     "qa": "concurrently -n types,lint -c blue,green \"npm run qa:types\" \"npm run qa:lint\"",
     "qa:types": "tsc --noEmit",
     "qa:types:watch": "tsc -watch --noEmit",
-    "qa:lint": "npm run lint"
+    "qa:lint": "npm run lint",
+    "package": "vsce package -o monorepo-focus-workspace.vsix",
+    "prepackage": "npm run compile"
   },
   "devDependencies": {
     "@types/node": "18.x",

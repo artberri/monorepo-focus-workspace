@@ -1,12 +1,14 @@
 import { window } from "vscode"
 import { Config } from "../crosscutting/config"
 import { Logger } from "../crosscutting/logger"
+import type { MonorepoWorkspace } from "../main/monorepo"
 import { getIgnoreConfig, getMonorepos } from "../main/monorepoService"
 
 export const enum FocusMode {
 	Normal = 1,
 	WithoutDevDependencies = 2,
 	Only = 3,
+	Pick = 4,
 }
 
 export const focusCommand = (mode: FocusMode) => async () => {
@@ -61,37 +63,50 @@ export const focusCommand = (mode: FocusMode) => async () => {
 		}
 	})
 
-	const picked = await window.showQuickPick(items, {
+	const picked = (await window.showQuickPick<PickItem>(items, {
 		matchOnDescription: true,
 		title: "Pick a workspace to focus",
-	})
+		canPickMany: mode === FocusMode.Pick,
+	})) as PickItem | PickItem[] | undefined
 
-	if (!picked) {
+	if (!picked || (Array.isArray(picked) && picked.length === 0)) {
 		logger.logInfo(`Workspace not selected`)
 		return
 	}
 
-	logger.logInfo(
-		`Picked this ${selectedMonorepo.name}/${picked.workspace.name} workspace`,
-	)
+	const pickedWorkspaces = Array.isArray(picked) ? picked : [picked]
+	pickedWorkspaces.forEach((item) => {
+		logger.logInfo(
+			`Picked this ${selectedMonorepo.name}/${item.workspace.name} workspace`,
+		)
+	})
 
-	const toKeepWorkspaces =
-		mode === FocusMode.Only
-			? [picked.workspace]
-			: [
+	const toKeepWorkspaces = Array.isArray(picked)
+		? picked.map((item) => item.workspace)
+		: mode === FocusMode.Only
+		? [picked.workspace]
+		: [
+				picked.workspace,
+				...selectedMonorepo.getWorkspaceDependencies(
 					picked.workspace,
-					...selectedMonorepo.getWorkspaceDependencies(
-						picked.workspace,
-						mode === FocusMode.Normal,
-					),
-			  ]
+					mode === FocusMode.Normal,
+				),
+		  ]
 
 	const ignoredFiles = await getIgnoreConfig(selectedMonorepo, toKeepWorkspaces)
 
 	await Config.instance().updateIgnoredFiles(
-		picked.workspace.name,
+		Array.isArray(picked)
+			? picked.map((item) => item.workspace.name).join("&")
+			: picked.workspace.name,
 		selectedMonorepo.name,
 		selectedMonorepo.workspaceFolder,
 		ignoredFiles,
 	)
+}
+
+type PickItem = {
+	workspace: MonorepoWorkspace
+	label: string
+	description: string
 }
