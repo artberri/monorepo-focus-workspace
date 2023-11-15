@@ -5,6 +5,7 @@ example/**
 .gitignore
 .yarnrc
 .github/**
+node_modules/**
 **/tsconfig.json
 **/.editorconfig
 **/.eslintignore
