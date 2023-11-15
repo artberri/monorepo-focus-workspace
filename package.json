@@ -125,7 +125,7 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run compile && npm prune --production",
     "build:base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "build": "npm run build:base --sourcemap",
     "build:watch": "npm run build:base --sourcemap --watch",
@@ -137,7 +137,7 @@
     "qa:types:watch": "tsc -watch --noEmit",
     "qa:lint": "npm run lint",
     "package": "vsce package -o monorepo-focus-workspace.vsix",
-    "prepackage": "npm run compile"
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/node": "18.x",
@@ -145,6 +145,7 @@
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vscode/test-electron": "^2.3.6",
+    "@vscode/vsce": "^2.22.0",
     "concurrently": "^8.2.2",
     "esbuild": "^0.19.5",
     "eslint": "^8.53.0",
