@@ -4,6 +4,7 @@
   "description": "Create a partial tree view to focus on a workspace in a monorepo. Supports NPM, Yarn, Pnpm and Lerna.",
   "version": "1.0.0",
   "license": "MIT",
+  "publisher": "alberto-varela",
   "author": {
     "name": "Alberto Varela",
     "email": "hello@albertovarela.net",
@@ -11,12 +12,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/artberri/vscode-focus-workspace.git"
+    "url": "https://github.com/artberri/monorepo-focus-workspace.git"
   },
   "bugs": {
-    "url": "https://github.com/artberri/monorepo-focus-workspace/issues"
+    "url": "https://github.com/artberri/monorepo-focus-workspace/issues",
+    "email": "hello@albertovarela.net"
   },
-  "homepage": "https://github.com/artberri/vscode-focus-workspace#readme",
+  "icon": "assets/icon.png",
+  "galleryBanner": {
+    "color": "#452c71",
+    "theme": "dark"
+  },
+  "pricing": "Free",
+  "homepage": "https://github.com/artberri/monorepo-focus-workspace#readme",
   "keywords": [
     "vscode",
     "code",

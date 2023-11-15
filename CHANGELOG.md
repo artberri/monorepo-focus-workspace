@@ -2,6 +2,6 @@
 
 All notable changes to the "monorepo-focus-workspace" extension will be documented in this file.
 
-## [Unreleased]
+## 1.0.0
 
 - Initial release
