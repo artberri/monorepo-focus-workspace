@@ -1,4 +1,5 @@
 import type { Uri, WorkspaceFolder } from "vscode"
+
 import {
 	getDirname,
 	getRelativePath,
@@ -180,18 +181,18 @@ const mapMonorepoWorkspace =
 		const emoji = path.startsWith("apps")
 			? "🚀"
 			: path.startsWith("packages")
-			? "📦"
-			: path.startsWith("tools")
-			? "🛠️"
-			: "🧩"
+				? "📦"
+				: path.startsWith("tools")
+					? "🛠️"
+					: "🧩"
 
 		const weight = path.startsWith("apps")
 			? 10
 			: path.startsWith("packages")
-			? 20
-			: path.startsWith("tools")
-			? 30
-			: 40
+				? 20
+				: path.startsWith("tools")
+					? 30
+					: 40
 
 		return {
 			name: workspace.name,

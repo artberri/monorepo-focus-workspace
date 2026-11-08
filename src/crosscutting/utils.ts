@@ -1,5 +1,6 @@
 import { readdir } from "fs"
 import { posix } from "path"
+
 import type { Uri } from "vscode"
 import { window, workspace } from "vscode"
 

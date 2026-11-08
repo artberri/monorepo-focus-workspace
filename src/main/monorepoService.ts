@@ -1,5 +1,6 @@
 import type { Uri, WorkspaceFolder } from "vscode"
 import { RelativePattern, workspace } from "vscode"
+
 import { Config } from "../crosscutting/config"
 import { Logger } from "../crosscutting/logger"
 import {
@@ -228,7 +229,7 @@ const getWorkspacePatterns = async (
 		return patterns
 	}
 
-	return await getLernaWorkspacePatterns(rootPackageJson)
+	return getLernaWorkspacePatterns(rootPackageJson)
 }
 
 const getPnpmWorkspacePatterns = async (

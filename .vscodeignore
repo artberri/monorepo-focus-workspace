@@ -7,10 +7,9 @@ example/**
 .github/**
 node_modules/**
 **/tsconfig.json
-**/.editorconfig
-**/.eslintignore
-**/.eslintrc.json
+.editorconfig
+**/.oxlintrc.json
+**/.oxfmtrc.json
 **/*.map
 **/*.ts
-**/.prettierrc
 .prototools

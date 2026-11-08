@@ -1,4 +1,5 @@
 import { window } from "vscode"
+
 import { Config } from "./config"
 
 export class Logger {

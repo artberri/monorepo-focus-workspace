@@ -1,5 +1,6 @@
 import type { WorkspaceFolder } from "vscode"
 import { ConfigurationTarget, window, workspace } from "vscode"
+
 import { extensionName, isNotNil } from "./utils"
 
 export interface MonorepoFocusWorkspaceVSCodeConfig {
@@ -150,15 +151,13 @@ export class Config {
 			existingConfiguration.set(entry, !existingConfiguration.get(entry))
 		})
 
-		await Promise.all([
-			workspace
-				.getConfiguration("files", workspaceFolder)
-				.update(
-					"exclude",
-					Object.fromEntries(existingConfiguration.entries()),
-					configurationTarget,
-				),
-		])
+		await workspace
+			.getConfiguration("files", workspaceFolder)
+			.update(
+				"exclude",
+				Object.fromEntries(existingConfiguration.entries()),
+				configurationTarget,
+			)
 
 		return true
 	}
@@ -194,10 +193,10 @@ function getConfig(
 
 	return {
 		enableLogs: !!config.enableLogs,
-		rootPackageJsonRelativePath: (
-			(config.rootPackageJsonRelativePath as string | undefined) ??
-			"package.json"
-		).toString(),
+		rootPackageJsonRelativePath:
+			typeof config.rootPackageJsonRelativePath === "string"
+				? config.rootPackageJsonRelativePath
+				: "package.json",
 		configurationTarget: mapConfigurationTarget(
 			config.configurationTarget as string | undefined,
 		),
@@ -210,7 +209,7 @@ function getConfig(
 							focusedWorkspace: string
 						}
 					>
-			  >((acc, [key, value]) => {
+				>((acc, [key, value]) => {
 					const valueObject =
 						(value as
 							| {
@@ -222,8 +221,8 @@ function getConfig(
 						return acc
 					}
 
-					acc[key.toString()] = {
-						focusedWorkspace: valueObject.focusedWorkspace.toString(),
+					acc[key] = {
+						focusedWorkspace: valueObject.focusedWorkspace,
 						managedFilesIgnoreEntries: Array.isArray(
 							valueObject.managedFilesIgnoreEntries,
 						)
@@ -233,7 +232,7 @@ function getConfig(
 							: [],
 					}
 					return acc
-			  }, {})
+				}, {})
 			: {},
 	}
 }

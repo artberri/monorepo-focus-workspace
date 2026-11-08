@@ -1,5 +1,6 @@
 import type { ExtensionContext } from "vscode"
 import { commands } from "vscode"
+
 import { FocusMode, focusCommand } from "./commands/focus"
 import { resetCommand } from "./commands/reset"
 import { toggleCommand } from "./commands/toggle"

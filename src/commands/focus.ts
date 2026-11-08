@@ -1,4 +1,5 @@
 import { window } from "vscode"
+
 import { Config } from "../crosscutting/config"
 import { Logger } from "../crosscutting/logger"
 import type { MonorepoWorkspace } from "../main/monorepo"
@@ -84,14 +85,14 @@ export const focusCommand = (mode: FocusMode) => async () => {
 	const toKeepWorkspaces = Array.isArray(picked)
 		? picked.map((item) => item.workspace)
 		: mode === FocusMode.Only
-		? [picked.workspace]
-		: [
-				picked.workspace,
-				...selectedMonorepo.getWorkspaceDependencies(
+			? [picked.workspace]
+			: [
 					picked.workspace,
-					mode === FocusMode.Normal,
-				),
-		  ]
+					...selectedMonorepo.getWorkspaceDependencies(
+						picked.workspace,
+						mode === FocusMode.Normal,
+					),
+				]
 
 	const ignoredFiles = await getIgnoreConfig(selectedMonorepo, toKeepWorkspaces)
 
