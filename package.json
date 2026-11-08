@@ -2,7 +2,7 @@
   "name": "monorepo-focus-workspace",
   "displayName": "Monorepo Focus Workspace",
   "description": "Create a partial tree view to focus on a workspace in a monorepo. Supports NPM, Yarn, Pnpm and Lerna.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "publisher": "alberto-varela",
   "author": {
