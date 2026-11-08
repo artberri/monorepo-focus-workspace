@@ -162,13 +162,60 @@ export class Config {
 		return true
 	}
 
+	/**
+	 * Earlier versions kept a multi-root window's focus at workspace level, in
+	 * the .code-workspace file, where it also hid paths in the other folders.
+	 * Undo it there; it now lives in each folder's settings.
+	 */
+	public async removeWorkspaceLevelFocus(): Promise<void> {
+		if (
+			!isMultiRootWindow() ||
+			getConfig().configurationTarget !== ConfigurationTarget.WorkspaceFolder
+		) {
+			return
+		}
+
+		const internal = parseInternal(
+			workspace.getConfiguration(extensionName).inspect("internal")
+				?.workspaceValue,
+		)
+		if (Object.keys(internal).length === 0) {
+			return
+		}
+
+		const managedEntries = Object.values(internal).flatMap(
+			(i) => i.managedFilesIgnoreEntries,
+		)
+
+		const existingConfiguration = getExistingExcludedFiles(
+			undefined,
+			ConfigurationTarget.Workspace,
+		)
+		managedEntries.forEach((entry) => {
+			existingConfiguration.delete(entry)
+		})
+
+		await workspace
+			.getConfiguration("files")
+			.update(
+				"exclude",
+				existingConfiguration.size > 0
+					? Object.fromEntries(existingConfiguration.entries())
+					: undefined,
+				ConfigurationTarget.Workspace,
+			)
+		await workspace
+			.getConfiguration(extensionName)
+			.update("internal", undefined, ConfigurationTarget.Workspace)
+	}
+
 	public dispose(): void {
 		this.subscription.dispose()
 	}
 }
 
 function getExistingExcludedFiles(
-	workspaceFolder: WorkspaceFolder,
+	workspaceFolder: WorkspaceFolder | undefined,
 	configurationTarget: ConfigurationTarget,
 ): Map<string, boolean> {
 	const existingConfiguration = workspace
@@ -200,41 +247,47 @@ function getConfig(
 		configurationTarget: mapConfigurationTarget(
 			config.configurationTarget as string | undefined,
 		),
-		internal: config.internal
-			? Object.entries((config.internal as object | undefined) ?? {}).reduce<
-					Record<
-						string,
-						{
-							managedFilesIgnoreEntries: string[]
-							focusedWorkspace: string
-						}
-					>
-				>((acc, [key, value]) => {
-					const valueObject =
-						(value as
-							| {
-									managedFilesIgnoreEntries?: string[]
-									focusedWorkspace?: string
-							  }
-							| undefined) ?? {}
-					if (typeof valueObject.focusedWorkspace !== "string") {
-						return acc
-					}
-
-					acc[key] = {
-						focusedWorkspace: valueObject.focusedWorkspace,
-						managedFilesIgnoreEntries: Array.isArray(
-							valueObject.managedFilesIgnoreEntries,
-						)
-							? valueObject.managedFilesIgnoreEntries
-									.map((path: string | undefined) => path?.toString())
-									.filter(isNotNil)
-							: [],
-					}
-					return acc
-				}, {})
-			: {},
+		internal: parseInternal(config.internal),
 	}
+}
+
+type InternalConfig = MonorepoFocusWorkspaceVSCodeConfig["internal"]
+
+function parseInternal(internal: unknown): InternalConfig {
+	return internal
+		? Object.entries((internal as object | undefined) ?? {}).reduce<
+				Record<
+					string,
+					{
+						managedFilesIgnoreEntries: string[]
+						focusedWorkspace: string
+					}
+				>
+			>((acc, [key, value]) => {
+				const valueObject =
+					(value as
+						| {
+								managedFilesIgnoreEntries?: string[]
+								focusedWorkspace?: string
+						  }
+						| undefined) ?? {}
+				if (typeof valueObject.focusedWorkspace !== "string") {
+					return acc
+				}
+
+				acc[key] = {
+					focusedWorkspace: valueObject.focusedWorkspace,
+					managedFilesIgnoreEntries: Array.isArray(
+						valueObject.managedFilesIgnoreEntries,
+					)
+						? valueObject.managedFilesIgnoreEntries
+								.map((path: string | undefined) => path?.toString())
+								.filter(isNotNil)
+						: [],
+				}
+				return acc
+			}, {})
+		: {}
 }
 
 const mapConfigurationTarget = (input?: string): ConfigurationTarget => {
@@ -245,9 +298,17 @@ const mapConfigurationTarget = (input?: string): ConfigurationTarget => {
 			return ConfigurationTarget.WorkspaceFolder
 		case "workspace":
 		default:
-			return ConfigurationTarget.Workspace
+			return isMultiRootWindow()
+				? ConfigurationTarget.WorkspaceFolder
+				: ConfigurationTarget.Workspace
 	}
 }
+
+// In a multi-root window, workspace-level settings live in the
+// .code-workspace file and files.exclude patterns there apply to every
+// folder, so a focus on one folder would hide same-named paths in the others.
+// Workspace-level settings are only safe in a single-folder window.
+const isMultiRootWindow = (): boolean => workspace.workspaceFile !== undefined
 
 export const mapRecordToMap = (data: Record<string, boolean>) =>
 	Object.entries(data).reduce<Map<string, boolean>>((acc, [key, value]) => {

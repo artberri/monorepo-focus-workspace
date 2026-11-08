@@ -26,7 +26,7 @@ It supports Monorepos created with NPM, Yarn, Pnpm, or Lerna.
 This extension contributes the following settings:
 
 - `monorepoFocusWorkspace.rootPackageJsonRelativePath`: Specifies the relative path to the `package.json` file of the root of the workspaces. Default value: `package.json`.
-- `monorepoFocusWorkspace.configurationTarget`: This extension needs to modify the `files.exclude` setting to hide folders. This setting specifies the scope of the setting change. If `workspace`, the setting will be modified in the workspace settings. If `workspace-folder`, the setting will be modified in the workspace folder settings. If `global`, the setting will be modified in the user settings.
+- `monorepoFocusWorkspace.configurationTarget`: This extension needs to modify the `files.exclude` setting to hide folders. This setting specifies the scope of the setting change. If `workspace`, the setting will be modified in the workspace settings. If `workspace-folder`, the setting will be modified in the workspace folder settings. If `global`, the setting will be modified in the user settings. In a multi-root workspace, `workspace` behaves like `workspace-folder`: workspace settings there apply to every folder, so focusing in one project would hide paths in the others.
 - `monorepoFocusWorkspace.enableLogs`: Enable output logs for debugging purposes.
 
 This extension will respect your previously configured `files.exclude` setting. If you want to force the hiding/showing of a path regardless of the selected workspaces, write this setting manually before executing any command.

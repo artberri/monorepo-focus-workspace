@@ -18,6 +18,7 @@ export const focusCommand = (mode: FocusMode) => async () => {
 		`Command monorepoFocusWorkspace.focus called with mode ${mode}`,
 	)
 
+	await Config.instance().removeWorkspaceLevelFocus()
 	const monorepos = await getMonorepos()
 
 	if (!monorepos[0]) {

@@ -101,7 +101,7 @@
           "monorepoFocusWorkspace.configurationTarget": {
             "type": "string",
             "default": "workspace",
-            "markdownDescription": "This extension needs to modify the `files.exclude` setting to hide folders. This setting specifies the scope of the setting change. If `workspace`, the setting will be modified in the workspace settings. If `workspace-folder`, the setting will be modified in the workspace folder settings. If `global`, the setting will be modified in the user settings",
+            "markdownDescription": "This extension needs to modify the `files.exclude` setting to hide folders. This setting specifies the scope of the setting change. If `workspace`, the setting will be modified in the workspace settings. If `workspace-folder`, the setting will be modified in the workspace folder settings. If `global`, the setting will be modified in the user settings. In a multi-root workspace, `workspace` behaves like `workspace-folder`, so a focus in one folder doesn't hide paths in the others.",
             "enum": [
               "workspace",
               "workspace-folder",
