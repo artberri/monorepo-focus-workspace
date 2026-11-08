@@ -1,0 +1,36 @@
+name: Setup toolchain
+description: Install the Node.js and npm versions pinned in .prototools, then the dependencies.
+inputs:
+  cache:
+    description: Cache the npm download cache between runs ("npm" or "").
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Read versions from .prototools
+      id: versions
+      shell: bash
+      run: |
+        set -euo pipefail
+        node_version="$(sed -n 's/^node = "\(.*\)"$/\1/p' .prototools)"
+        npm_version="$(sed -n 's/^npm = "\(.*\)"$/\1/p' .prototools)"
+        if [ -z "$node_version" ] || [ -z "$npm_version" ]; then
+          echo "::error file=.prototools::node and npm must be pinned in .prototools"
+          exit 1
+        fi
+        echo "node=$node_version" >> "$GITHUB_OUTPUT"
+        echo "npm=$npm_version" >> "$GITHUB_OUTPUT"
+    - name: Setup Node
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: ${{ steps.versions.outputs.node }}
+        cache: ${{ inputs.cache }}
+    - name: Install npm
+      shell: bash
+      env:
+        NPM_VERSION: ${{ steps.versions.outputs.npm }}
+      run: npm install --global "npm@$NPM_VERSION"
+    - name: Install dependencies
+      shell: bash
+      run: npm ci

@@ -140,8 +140,7 @@
     "qa:types:watch": "tsc --watch --noEmit",
     "qa:lint": "npm run lint",
     "qa:format": "npm run format:check",
-    "package": "vsce package -o monorepo-focus-workspace.vsix",
-    "publish": "vsce publish"
+    "package": "vsce package -o monorepo-focus-workspace.vsix"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",
