@@ -1,0 +1,7 @@
+node = "26.12.1"
+npm = "12.2.2"
+
+[settings]
+auto-install = true
+auto-clean = true
+telemetry = false
