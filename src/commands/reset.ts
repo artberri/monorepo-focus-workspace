@@ -6,6 +6,7 @@ export const resetCommand = async () => {
 	const logger = Logger.instance()
 	logger.logInfo("Command monorepoFocusWorkspace.reset called")
 
+	await Config.instance().removeWorkspaceLevelFocus()
 	const monorepos = await getMonorepos()
 
 	await Promise.all(

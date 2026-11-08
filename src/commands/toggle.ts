@@ -8,6 +8,7 @@ export const toggleCommand = async () => {
 	const logger = Logger.instance()
 	logger.logInfo("Command monorepoFocusWorkspace.toggle called")
 
+	await Config.instance().removeWorkspaceLevelFocus()
 	const monorepos = await getMonorepos()
 
 	const toggled = await Promise.all(
