@@ -2,6 +2,7 @@ import { window } from "vscode"
 
 import { Config } from "../crosscutting/config"
 import { Logger } from "../crosscutting/logger"
+import { withStatusProgress } from "../crosscutting/utils"
 import type { MonorepoWorkspace } from "../main/monorepo"
 import { getIgnoreConfig, getMonorepos } from "../main/monorepoService"
 
@@ -18,8 +19,13 @@ export const focusCommand = (mode: FocusMode) => async () => {
 		`Command monorepoFocusWorkspace.focus called with mode ${mode}`,
 	)
 
-	await Config.instance().removeWorkspaceLevelFocus()
-	const monorepos = await getMonorepos()
+	const monorepos = await withStatusProgress(
+		"Monorepo: finding monorepos",
+		async () => {
+			await Config.instance().removeWorkspaceLevelFocus()
+			return getMonorepos()
+		},
+	)
 
 	if (!monorepos[0]) {
 		logger.logError(`Monorepos not found`)
@@ -95,16 +101,21 @@ export const focusCommand = (mode: FocusMode) => async () => {
 					),
 				]
 
-	const ignoredFiles = await getIgnoreConfig(selectedMonorepo, toKeepWorkspaces)
+	await withStatusProgress("Monorepo: focusing workspace", async () => {
+		const ignoredFiles = await getIgnoreConfig(
+			selectedMonorepo,
+			toKeepWorkspaces,
+		)
 
-	await Config.instance().updateIgnoredFiles(
-		Array.isArray(picked)
-			? picked.map((item) => item.workspace.name).join("&")
-			: picked.workspace.name,
-		selectedMonorepo.name,
-		selectedMonorepo.workspaceFolder,
-		ignoredFiles,
-	)
+		await Config.instance().updateIgnoredFiles(
+			Array.isArray(picked)
+				? picked.map((item) => item.workspace.name).join("&")
+				: picked.workspace.name,
+			selectedMonorepo.name,
+			selectedMonorepo.workspaceFolder,
+			ignoredFiles,
+		)
+	})
 }
 
 type PickItem = {
