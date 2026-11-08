@@ -2,7 +2,7 @@ import { readdir } from "fs"
 import { posix } from "path"
 
 import type { Uri } from "vscode"
-import { window, workspace } from "vscode"
+import { ProgressLocation, window, workspace } from "vscode"
 
 export const extensionName = "monorepoFocusWorkspace"
 
@@ -71,3 +71,19 @@ export function readDir(path: string): Promise<string[]> {
 		})
 	})
 }
+
+/**
+ * Shows a spinner and a message in the status bar while a slow task runs.
+ * Keep quick picks and other prompts outside the task, so the spinner never
+ * spins while the extension waits for the user.
+ */
+export const withStatusProgress = <T>(
+	message: string,
+	task: () => Promise<T>,
+): Promise<T> =>
+	Promise.resolve(
+		window.withProgress(
+			{ location: ProgressLocation.Window, title: message },
+			task,
+		),
+	)
