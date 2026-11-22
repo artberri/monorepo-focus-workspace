@@ -145,13 +145,13 @@
   "devDependencies": {
     "@types/node": "^20.19.43",
     "@types/vscode": "1.80.x",
-    "@vscode/vsce": "^4.1.0",
+    "@vscode/vsce": "^4.1.1",
     "concurrently": "^10.0.7",
     "esbuild": "^0.28.2",
-    "ovsx": "^1.3.0",
-    "oxfmt": "^0.77.0",
-    "oxlint": "^1.92.0",
-    "oxlint-tsgolint": "^7.0.2006",
+    "ovsx": "^1.4.0",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
+    "oxlint-tsgolint": "^7.0.2007",
     "typescript": "^6.0.3"
   },
   "dependencies": {
